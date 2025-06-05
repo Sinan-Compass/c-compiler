@@ -13,10 +13,11 @@ class semantic
 {
 public:
     vector<quat> quats;
+    long long tempVarCount = 0;
     ASTNode *root;
 public:
     semantic(/* args */);
-    semantic(ASTNode *root):root(root){};
+    semantic(ASTNode *root):root(root),tempVarCount(0){};
     ~semantic();
 
     vector<quat> getQuats();
@@ -27,7 +28,6 @@ public:
     void analyzeExpression(ExpressionNode *expr);
     void analyzeExpress(ExpressNode *express);
     void analyzeAssign(AssignNode *assign);
-    void analyzeCall(UseFuncNode *call);
     void analyzeList(ListNode *list);
     void analyzeParam(PararmeterNode *param);
     void analyzeDeclare(DeclareNode *declare);
@@ -45,14 +45,16 @@ public:
     void analyzeUseFun(UseFuncNode *useNode);
     void analyzeFactPar(FactParNode *factPar);
 
-    void analyzeType(TypeNode *typeNode);
-    void analyzeName(NameNode *nameNode);
-    void analyzeInt(IntNode *intNode);
-    void analyzeDouble(DoubleNode *doubleNode);
-    void analyzeOp(opNode *op);
+    string analyzeType(TypeNode *typeNode);
+    string analyzeName(NameNode *nameNode);
+    string analyzeInt(IntNode *intNode);
+    string analyzeDouble(DoubleNode *doubleNode);
+    string analyzeOp(opNode *op);
+
+    string getNextTempVar();
 };
 
-semantic::semantic(/* args */){}
+semantic::semantic(/* args */):tempVarCount(0){}
 semantic::~semantic(){}
 
 vector<quat> semantic::getQuats()
