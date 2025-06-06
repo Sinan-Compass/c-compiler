@@ -24,12 +24,18 @@
     <ClCompile Include="tuXIng.h">
       <Filter>头文件</Filter>
     </ClCompile>
+    <ClCompile Include="semantic.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ast.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Parser.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="semantic.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
