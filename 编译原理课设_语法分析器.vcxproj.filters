@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Parser.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -27,15 +24,24 @@
     <ClCompile Include="semantic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Lexical.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Syntactic.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="semantic.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="ast.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Parser.h">
+    <ClInclude Include="Lexical.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="semantic.h">
+    <ClInclude Include="Syntactic.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

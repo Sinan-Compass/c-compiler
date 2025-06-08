@@ -3,7 +3,7 @@
 using namespace std;
 
 class Parser {
-	tokens& t;		//vector<token>
+	tokens& t;
 	token cur_t;
 	int cur_t_index;
 
@@ -46,6 +46,7 @@ public:
 			return program; //ÕýÈ·
 		}
 		else {
+			cout << "WANNING!" << endl;
 			return nullptr; //´íÎó
 		}
 	}

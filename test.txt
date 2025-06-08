@@ -1,0 +1,44 @@
+int abs(int a){
+    if(a > 0){
+        return a;
+    }
+    else{
+        return 0-a;
+    }
+}
+
+int func(int c){
+    int a;
+    int b;
+    a = 10;
+    b = 10;
+    while(a&&b||(b>5)){
+        while(a< abs(c)){
+            a = a + b*c;
+            b = a / (abs(b*c) + 1);
+            c = c+2;
+        }
+
+        if(a > 0){
+            a = a * b;
+            if(b != 0){
+                b = b - 1;
+            }
+            else{
+                while((c == 1) || a != 10){
+                    c = c - a*b;
+                    b = c + a;
+                }
+                return b*c;
+            }
+        }
+
+        while(a>=c)
+          a = a + 1;
+        if(a||b)
+            while(b != 3)
+                b = a*b;
+        else
+            return abs(a*b - a*c);
+    }
+}

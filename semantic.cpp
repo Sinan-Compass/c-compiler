@@ -61,16 +61,16 @@ void semantic::analyzeBlock(BlockNode *block) {
 }
 
 void semantic::analyzeStatement(StatementNode *stmt) {
-    if (ExpressNode* express = dynamic_cast<ExpressNode*>(stmt->childs[0])) {
-        analyzeExpress(express);
-    } else if (BlockNode* block = dynamic_cast<BlockNode*>(stmt->childs[0])) {
-        analyzeBlock(block);
-    } else if (IfNode* ifNode = dynamic_cast<IfNode*>(stmt->childs[0])) {
-        analyzeIf(ifNode);
-    } else if (WhileNode* whileNode = dynamic_cast<WhileNode*>(stmt->childs[0])) {
-        analyzeWhile(whileNode);
-    } else if (ReturnNode* returnNode = dynamic_cast<ReturnNode*>(stmt->childs[0])) {
-        analyzeReturn(returnNode);
+    if (stmt->childs[0]->t.first == "block") {
+        analyzeBlock(dynamic_cast<BlockNode*>(stmt->childs[0]));
+    } else if (stmt->childs[0]->t.first == "if") {
+        analyzeIf(dynamic_cast<IfNode*>(stmt->childs[0]));
+    } else if (stmt->childs[0]->t.first == "while") {
+        analyzeWhile(dynamic_cast<WhileNode*>(stmt->childs[0]));
+    } else if (stmt->childs[0]->t.first == "return") {
+        analyzeReturn(dynamic_cast<ReturnNode*>(stmt->childs[0]));
+    } else if (stmt->childs[0]->t.first == "express") {
+        analyzeExpress(dynamic_cast<ExpressNode*>(stmt->childs[0]));
     }
 }
 
@@ -90,13 +90,15 @@ string semantic::analyzeExpression(ExpressionNode *expr) {
 }
 
 string semantic::analyzeAssign(AssignNode *assign) {
-    if(assign->childs.size() <= 1){
+/*    if(assign->childs.size() <= 1 || dynamic_cast<OpNode*>(assign->childs[1])->t.second->getInfo() == "||")*/
+    if(assign->childs[0]->t.first == "or")
+    {
         return analyzeOr(dynamic_cast<OrNode *>(assign->childs[0]));
     }
     else{
         string dst = analyzeName(dynamic_cast<NameNode *>(assign->childs[0]));
-        //string op = analyzeOp(dynamic_cast<opNode *>(assign->childs[1]));
-        string src = analyzeExpression(dynamic_cast<ExpressionNode *>(assign->childs[1]));
+        /*string op = analyzeOp(dynamic_cast<OpNode *>(assign->childs[1]));*/
+        string src = analyzeAssign(dynamic_cast<AssignNode *>(assign->childs[1]));
         quats.push_back({"=", src, "_", dst});
         return dst;
     }
@@ -109,6 +111,7 @@ void semantic::analyzeList(ListNode *list) {
             analyzeParam(param);
         }
     }
+    quats.push_back({"pe", "_", "_", "_"}); // List end
 }
 
 string semantic::analyzeParam(PararmeterNode *param) {
@@ -145,7 +148,8 @@ void semantic::analyzeIf(IfNode *ifNode) {
     analyzeStatement(dynamic_cast<StatementNode*>(ifNode->childs[2]));
 
     //4.add (el _ _ _)
-    quats.push_back({"el", "_", "_", "_"});
+    if(ifNode->childs[3] != nullptr)
+        quats.push_back({"el", "_", "_", "_"});
 
     //5.else do
     if (StatementNode* elseStmt = dynamic_cast<StatementNode*>(ifNode->childs[4])) {
@@ -181,17 +185,17 @@ void semantic::analyzeReturn(ReturnNode *returnNode) {
 }
 
 string semantic::analyzeOr(OrNode *orNode) {
-    if (orNode->childs.size() <= 1)
+    if (orNode->childs.size() <= 1 )
     {
         return analyzeAnd(dynamic_cast<AndNode *>(orNode->childs[0]));
     }
     else
     {
         string and1 = analyzeAnd(dynamic_cast<AndNode*>(orNode->childs[0]));
-        //string op = analyzeOp(dynamic_cast<opNode *>(orNode->childs[1]));
+        string op = analyzeOp(dynamic_cast<OpNode *>(orNode->childs[1]));
         string and2 = analyzeAnd(dynamic_cast<AndNode*>(orNode->childs[2]));
         string tempVal = getNextTempVar();
-        quats.push_back({"or", and1, and2, tempVal});
+        quats.push_back({op, and1, and2, tempVal});
         return tempVal;
     }
 
@@ -205,26 +209,26 @@ string semantic::analyzeAnd(AndNode *andNode) {
     else
     {
         string eq1 = analyzeEqual(dynamic_cast<EqualNode*>(andNode->childs[0]));
-        //string op = analyzeOp(dynamic_cast<opNode *>(andNode->childs[1]));
-        string eq2 = analyzeEqual(dynamic_cast<EqualNode*>(andNode->childs[0]));
+        string op = analyzeOp(dynamic_cast<OpNode *>(andNode->childs[1]));
+        string eq2 = analyzeEqual(dynamic_cast<EqualNode*>(andNode->childs[2]));
         string tempVal = getNextTempVar();
-        quats.push_back({"&&", eq1, eq2, tempVal});
+        quats.push_back({op, eq1, eq2, tempVal});
         return tempVal;
     }
 }
 
 string semantic::analyzeEqual(EqualNode *equalNode) {
-    if (equalNode->childs.size() <= 1)
+    if (equalNode->childs.size() <= 1 )
     {
         return analyzeCompare(dynamic_cast<CompareNode *>(equalNode->childs[0]));
     }
     else
     {
         string cmp1 = analyzeCompare(dynamic_cast<CompareNode*>(equalNode->childs[0]));
-        /*string op = analyzeOp(dynamic_cast<opNode *>(equalNode->childs[1]));*/
+        string op = analyzeOp(dynamic_cast<OpNode *>(equalNode->childs[1]));
         string cmp2 = analyzeCompare(dynamic_cast<CompareNode*>(equalNode->childs[2]));
         string tempVal = getNextTempVar();
-        quats.push_back({"==", cmp1, cmp2, tempVal});
+        quats.push_back({op, cmp1, cmp2, tempVal});
         return tempVal;
     }
 }
@@ -237,7 +241,7 @@ string semantic::analyzeCompare(CompareNode *compareNode) {
     else
     {
         string add1 = analyzeAdd(dynamic_cast<AddNode *>(compareNode->childs[0]));
-        string op = analyzeOp(dynamic_cast<opNode *>(compareNode->childs[1]));
+        string op = analyzeOp(dynamic_cast<OpNode *>(compareNode->childs[1]));
         string add2 = analyzeAdd(dynamic_cast<AddNode*>(compareNode->childs[2]));
         string tempVal = getNextTempVar();
         quats.push_back({op, add1, add2, tempVal});
@@ -253,7 +257,7 @@ string semantic::analyzeAdd(AddNode *addNode) {
     else
     {
         string mul1 = analyzeMul(dynamic_cast<MulNode*>(addNode->childs[0]));
-        string op = analyzeOp(dynamic_cast<opNode *>(addNode->childs[1]));
+        string op = analyzeOp(dynamic_cast<OpNode *>(addNode->childs[1]));
         string mul2 = analyzeMul(dynamic_cast<MulNode*>(addNode->childs[2]));
         string tempVal = getNextTempVar();
         quats.push_back({op, mul1, mul2, tempVal});
@@ -269,7 +273,7 @@ string semantic::analyzeMul(MulNode *mulNode) {
     else
     {
         string basic1 = analyzeBasic(dynamic_cast<BasicNode*>(mulNode->childs[0]));
-        string op = analyzeOp(dynamic_cast<opNode *>(mulNode->childs[1]));
+        string op = analyzeOp(dynamic_cast<OpNode *>(mulNode->childs[1]));
         string basic2 = analyzeBasic(dynamic_cast<BasicNode*>(mulNode->childs[2]));
         string tempVal = getNextTempVar();
         quats.push_back({op, basic1, basic2, tempVal});
@@ -340,19 +344,22 @@ void semantic::analyzeFactPar(FactParNode *factPar) {
 
 string semantic::analyzeType(TypeNode *typeNode) {
     // Analyze type information
-    return typeNode->t;
+     keyword_part* ptr = dynamic_cast<keyword_part*>(typeNode->t.second);
+     return ptr->getInfo();
 }
 
 string semantic::analyzeName(NameNode *nameNode) {
     // Analyze name information
-    return nameNode->t; 
+    synbl_part* ptr = dynamic_cast<synbl_part*>(nameNode->t.second);
+    return ptr->getInfo();
 }
 
 //==============这里最后要修改为int===========
 string semantic::analyzeInt(IntNode *intNode) {
     // Analyze integer information
     // return stoi(intNode->t);
-    return intNode->t;
+    auto ptr = dynamic_cast<constant_part*>(intNode->t.second);
+    return ptr->getInfo();
 }
 
 //==============这里最后要修改为double===========
@@ -360,10 +367,12 @@ string semantic::analyzeDouble(DoubleNode *doubleNode) {
     // Analyze double information
     // return std::stod(doubleNode->t);    
 
-    return doubleNode->t;
+    auto ptr = dynamic_cast<constant_part*>(doubleNode->t.second);
+    return ptr->getInfo();
 }
 
-string semantic::analyzeOp(opNode *op) {
+string semantic::analyzeOp(OpNode *op) {
     // Analyze operator information
-    return op->t;
+    auto ptr = dynamic_cast<delimeter_part*>(op->t.second);
+    return ptr->getInfo();
 }

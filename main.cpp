@@ -1,37 +1,33 @@
-//#include "Parser.h"
+#define _CRT_SECURE_NO_WARNINGS
 #include "tuXIng.h"
 #include "semantic.h"
 
 int main() {
-	//输入
-	vector<token> test = { 
-		"int", "标识符", "(", "int", "标识符", ")", "{", "if" ,"(", "标识符" ,
-		">", "整数常量",")","{", "return", "标识符", ";", "}", "else", 
-		"{" , "return", "(", "整数常量", "-" ,"标识符",")",";","}","}"
-	};
+	Table table;
+	Lexical_analysis lex;
+	lex.input(table);
 
-	//语法分析器
-	Parser parser(test);
+	//for (auto token : lex.tokens)
+	//{
+	//	cout << "<" << token.second->getInfo() << ", " << token.first << ">" << endl;
+	//}
+	Parser parser(lex.tokens);
 	ASTNode* root = parser.Syntax_analyzer();
 	ASTVisualizer visualizer;
-	visualizer.visualize(root, "ast.dot");
+	visualizer.visualize(root, "ast2.dot");
+
 
 	//语义分析器
 	semantic sem(root);
 
 	auto quats = sem.getQuats();
-	for(quat q : quats) {
-		cout << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
+
+	/*freopen("quadruple.txt", "w", stdout);*/
+	for (int i = 0; i < quats.size(); i++) {
+		/*string q = to_string(i) + ":\t" + quats[i][0] + "\t" + quats[i][1] + "\t" + quats[i][2] + "\t" + quats[i][3] + "\n";*/
+		cout << i << ":\t" << "(\t" << quats[i][0] << "\t" << quats[i][1] << "\t" << quats[i][2] << "\t" << quats[i][3] << "\t)" << endl;
 	}
-
 	cout << "size of quats is : " << quats.size() << endl;
-
-	//vector<quat> qt;
-	//qt.push_back({ "begin", "_", "_", "_" });
-	//
-	//for (quat q : qt) {
-	//	cout << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
-	//}
 
 	return 0;
 }

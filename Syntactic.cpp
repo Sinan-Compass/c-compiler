@@ -1,6 +1,6 @@
-#include "Parser.h"
+#include "Syntactic.h"
 
-void Parser::next(){
+void Parser::next() {
 	cur_t_index++;
 	if (cur_t_index < t.size()) {
 		cur_t = t[cur_t_index];
@@ -8,10 +8,11 @@ void Parser::next(){
 }
 
 // <程序> -> { <函数定义> }
-ASTNode* Parser::programProduction(){
+ASTNode* Parser::programProduction() {
 	ProgramNode* program = new ProgramNode();
 	while (1) {
-		if (cur_t == "int" || cur_t == "float" || cur_t == "void") {
+		if (cur_t.second->getInfo() == "int" || cur_t.second->getInfo() == "float"
+			|| cur_t.second->getInfo() == "void") {
 			//即cur_t是否是 <函数定义> 的first集合终结符
 			ASTNode* function = functionProduction();
 			if (function == nullptr)return nullptr;
@@ -25,25 +26,25 @@ ASTNode* Parser::programProduction(){
 }
 
 // <函数定义> -> <类型说明符> '标识符' '('[<参数列表>] ')' < 块 >
-ASTNode* Parser::functionProduction(){
+ASTNode* Parser::functionProduction() {
 	ASTNode* type = typeProduction();
 	if (type == nullptr)return nullptr;
 
-	if (cur_t != "标识符") {
+	if (cur_t.first != "IT") {
 		return nullptr; //错误
 	}
 	NameNode* name = new NameNode(cur_t);
 	next();
 
-	if (cur_t != "(") {
+	if (cur_t.second->getInfo() != "(") {
 		return nullptr; //错误
 	}
 	next();
 
 	ASTNode* list = nullptr;
-	if (cur_t != ")") {
+	if (cur_t.second->getInfo() != ")") {
 		list = listProduction();
-		if (cur_t != ")" || list == nullptr) {
+		if (cur_t.second->getInfo() != ")" || list == nullptr) {
 			return nullptr; // 错误
 		}
 		next();
@@ -57,9 +58,10 @@ ASTNode* Parser::functionProduction(){
 }
 
 // <类型说明符> -> "int" | "float" | "void"
-ASTNode* Parser::typeProduction(){
+ASTNode* Parser::typeProduction() {
 	TypeNode* type = nullptr;
-	if (cur_t == "int" || cur_t == "float" || cur_t == "void") {
+	if (cur_t.second->getInfo() == "int" || cur_t.second->getInfo() == "float"
+		|| cur_t.second->getInfo() == "void") {
 		type = new TypeNode(cur_t);
 		next();
 	}
@@ -67,19 +69,19 @@ ASTNode* Parser::typeProduction(){
 }
 
 // <参数列表> -> <参数> { ',' <参数> }
-ASTNode* Parser::listProduction(){
+ASTNode* Parser::listProduction() {
 	ListNode* list = nullptr;
 	ASTNode* pararmeter = pararmeterProduction();
 	if (pararmeter == nullptr)return nullptr;
 	list = new ListNode(pararmeter);
-	while(1) {
-		if (cur_t == ",") {
+	while (1) {
+		if (cur_t.second->getInfo() == ",") {
 			next();
 		}
 		else {
 			break;
 		}
-		pararmeterProduction();
+		pararmeter = pararmeterProduction();
 		if (pararmeter == nullptr)return nullptr;
 		list->childs.push_back(pararmeter);
 	}
@@ -89,15 +91,16 @@ ASTNode* Parser::listProduction(){
 // <块> -> '{' { <变量声明> } { <语句> } '}'
 ASTNode* Parser::blockProduction() {
 	BlockNode* block = new BlockNode();
-	if (cur_t != "{") {
+	if (cur_t.second->getInfo() != "{") {
 		return nullptr; //错误
 	}
 	next();
 
 	while (1) {
-		if (cur_t == "int" || cur_t == "float" || cur_t == "void" ) {
+		if (cur_t.second->getInfo() == "int" || cur_t.second->getInfo() == "float"
+			|| cur_t.second->getInfo() == "void") {
 			//即cur_t是否是 <变量声明> 的first集合终结符
-			ASTNode* declare  = declareProduction();
+			ASTNode* declare = declareProduction();
 			if (declare == nullptr) return nullptr;
 			block->childs.push_back(declare);
 		}
@@ -107,8 +110,9 @@ ASTNode* Parser::blockProduction() {
 	}
 
 	while (1) {
-		if (cur_t == "if" || cur_t == "while" || cur_t == "return" || cur_t == "{" || cur_t == "("
-			|| cur_t == "标识符" || cur_t == "整数常量" || cur_t == "浮点数常量") {
+		if (cur_t.second->getInfo() == "if" || cur_t.second->getInfo() == "while"
+			|| cur_t.second->getInfo() == "return" || cur_t.second->getInfo() == "{"
+			|| cur_t.second->getInfo() == "(" || cur_t.first == "IT" || cur_t.first == "CT1"|| cur_t.first == "CT2") {
 			//即cur_t是否是 <语句> 的first集合终结符
 			ASTNode* statement = statementProducation();
 			if (statement == nullptr) return nullptr;
@@ -119,7 +123,7 @@ ASTNode* Parser::blockProduction() {
 		}
 	}
 
-	if (cur_t != "}") {
+	if (cur_t.second->getInfo() != "}") {
 		return nullptr; //错误
 	}
 	next();
@@ -127,10 +131,10 @@ ASTNode* Parser::blockProduction() {
 }
 
 // <参数> -> <类型说明符> <标识符>
-ASTNode* Parser::pararmeterProduction(){
+ASTNode* Parser::pararmeterProduction() {
 	ASTNode* type = typeProduction();
 	if (type == nullptr)return nullptr;
-	if (cur_t != "标识符") {
+	if (cur_t.first != "IT") {
 		return nullptr; //错误
 	}
 	NameNode* name = new NameNode(cur_t);
@@ -139,16 +143,16 @@ ASTNode* Parser::pararmeterProduction(){
 }
 
 // <变量声明> -> <类型说明符> '标识符' ';'
-ASTNode* Parser::declareProduction(){
+ASTNode* Parser::declareProduction() {
 	ASTNode* type = typeProduction();
 	if (type == nullptr)return nullptr;
-	if (cur_t != "标识符") {
+	if (cur_t.first != "IT") {
 		return nullptr; //错误
 	}
 	NameNode* name = new NameNode(cur_t);
 	next();
 
-	if (cur_t != ";") {
+	if (cur_t.second->getInfo() != ";") {
 		return nullptr; //错误
 	}
 	next();
@@ -156,32 +160,32 @@ ASTNode* Parser::declareProduction(){
 }
 
 // <语句> -> <表达式语句> | <块> | <if语句> | <while语句> | <return语句>
-ASTNode* Parser::statementProducation(){
-	if (cur_t == "return") {
+ASTNode* Parser::statementProducation() {
+	if (cur_t.second->getInfo() == "return") {
 		//即cur_t为 <return语句> 的first集合的终结符
 		ASTNode* _return = returnProduction();
 		if (_return == nullptr)return nullptr;
 		return new StatementNode(_return);
 	}
-	else if (cur_t == "while") {
+	else if (cur_t.second->getInfo() == "while") {
 		//即cur_t为 <while语句> 的first集合的终结符
 		ASTNode* _while = whileProduction();
 		if (_while == nullptr)return nullptr;
 		return new StatementNode(_while);
 	}
-	else if (cur_t == "if") {
+	else if (cur_t.second->getInfo() == "if") {
 		//即cur_t为 <if语句> 的first集合的终结符
 		ASTNode* _if = ifProduction();
 		if (_if == nullptr)return nullptr;
 		return new StatementNode(_if);
 	}
-	else if (cur_t == "{") {
+	else if (cur_t.second->getInfo() == "{") {
 		//即cur_t为 <块> 的first集合的终结符
 		ASTNode* block = blockProduction();
 		if (block == nullptr)return nullptr;
 		return new StatementNode(block);
 	}
-	else if (cur_t == "(" || cur_t == "标识符" || cur_t == "整数常量" || cur_t == "浮点数常量") {
+	else if (cur_t.second->getInfo() == "(" || cur_t.first == "IT" || cur_t.first == "CT1"||cur_t.first == "CT2") {
 		//即cur_t为 <表达式语句> 的first集合的终结符
 		ASTNode* express = expressProduction();
 		if (express == nullptr)return nullptr;
@@ -193,9 +197,9 @@ ASTNode* Parser::statementProducation(){
 }
 
 // <表达式语句> -> <表达式> ';'
-ASTNode* Parser::expressProduction(){
+ASTNode* Parser::expressProduction() {
 	ASTNode* expression = expressionProduction();
-	if (cur_t != ";" || expression == nullptr) {
+	if (cur_t.second->getInfo() != ";" || expression == nullptr) {
 		return nullptr; // 错误
 	}
 	next();
@@ -203,14 +207,14 @@ ASTNode* Parser::expressProduction(){
 }
 
 // <if语句> -> "if" '(' <表达式> ')' <语句> [ "else"  <语句> ]
-ASTNode* Parser::ifProduction(){
-	if (cur_t != "if") {
+ASTNode* Parser::ifProduction() {
+	if (cur_t.second->getInfo() != "if") {
 		return nullptr; //错误
 	}
-	opNode* op1 = new opNode(cur_t);
+	OpNode* op1 = new OpNode(cur_t);
 	next();
 
-	if (cur_t != "(") {
+	if (cur_t.second->getInfo() != "(") {
 		return nullptr; //错误
 	}
 	next();
@@ -218,18 +222,18 @@ ASTNode* Parser::ifProduction(){
 	ASTNode* condition = expressionProduction();
 	if (condition == nullptr)return nullptr;
 
-	if (cur_t != ")") {
+	if (cur_t.second->getInfo() != ")") {
 		return nullptr; //错误
 	}
 	next();
-	
+
 	ASTNode* then = statementProducation();
 	if (then == nullptr)return nullptr;
 
 	ASTNode* els = nullptr;
-	opNode* op2 = nullptr;
-	if (cur_t == "else") {
-		op2 = new opNode(cur_t);
+	OpNode* op2 = nullptr;
+	if (cur_t.second->getInfo() == "else") {
+		op2 = new OpNode(cur_t);
 		next();
 		els = statementProducation();
 		if (els == nullptr)return nullptr;
@@ -239,14 +243,14 @@ ASTNode* Parser::ifProduction(){
 }
 
 // <while语句> -> "while" '(' <表达式> ')'  <语句>
-ASTNode* Parser::whileProduction(){
-	if (cur_t != "while") {
+ASTNode* Parser::whileProduction() {
+	if (cur_t.second->getInfo() != "while") {
 		return nullptr; //错误
 	}
-	opNode* op = new opNode(cur_t);
+	OpNode* op = new OpNode(cur_t);
 	next();
-	
-	if (cur_t != "(") {
+
+	if (cur_t.second->getInfo() != "(") {
 		return nullptr; //错误
 	}
 	next();
@@ -254,11 +258,11 @@ ASTNode* Parser::whileProduction(){
 	ASTNode* condition = expressionProduction();
 	if (condition == nullptr)return nullptr;
 
-	if (cur_t != ")") {
+	if (cur_t.second->getInfo() != ")") {
 		return nullptr; //错误
 	}
 	next();
-	
+
 	ASTNode* then = statementProducation();
 	if (then == nullptr)return nullptr;
 
@@ -266,41 +270,41 @@ ASTNode* Parser::whileProduction(){
 }
 
 // <return语句> -> "return" [ <表达式> ] ';'
-ASTNode* Parser::returnProduction(){
-	if (cur_t != "return") {
+ASTNode* Parser::returnProduction() {
+	if (cur_t.second->getInfo() != "return") {
 		return nullptr; //错误
 	}
-	opNode* op = new opNode(cur_t);
+	OpNode* op = new OpNode(cur_t);
 	next();
 
 	ASTNode* value = nullptr;
-	if (cur_t == "(" || cur_t == "标识符" || cur_t == "整数常量" || cur_t == "浮点数常量") {
+	if (cur_t.second->getInfo() == "(" || cur_t.first == "IT" || cur_t.first == "CT1"|| cur_t.first == "CT2") {
 		//即cur_t为 <表达式> 的first集合的终结符
 		value = expressionProduction();
 		if (value == nullptr)return nullptr;
 	}
-	if (cur_t != ";") {
+	if (cur_t.second->getInfo() != ";") {
 		return nullptr; //错误
 	}
 	next();
-	return new ReturnNode(op,value);
+	return new ReturnNode(op, value);
 }
 
 // <表达式> -> <赋值表达式>
-ASTNode* Parser::expressionProduction(){
+ASTNode* Parser::expressionProduction() {
 	ASTNode* assign = assignProduction();
 	if (assign == nullptr)return nullptr;
 	return new ExpressionNode(assign);
 }
 
 // <赋值表达式> -> <逻辑或表达式> | < 标识符> '=' < 赋值表达式 > (*赋值是右结合*)
-ASTNode* Parser::assignProduction(){
+ASTNode* Parser::assignProduction() {
 	AssignNode* assign = nullptr;
-	if (cur_t == "标识符" && cur_t_index + 1 < t.size() && t[cur_t_index + 1] == "=") {
+	if (cur_t.first == "IT" && cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "=") {
 		//判断是  < 标识符> '=' < 赋值表达式 >
 		NameNode* name = new NameNode(cur_t);
 		next();
-		if (cur_t != "=") {
+		if (cur_t.second->getInfo() != "=") {
 			return nullptr;
 		}
 		next();
@@ -317,13 +321,13 @@ ASTNode* Parser::assignProduction(){
 }
 
 // <逻辑或表达式> -> <逻辑与表达式>{ "||" < 逻辑与表达式 > }
-ASTNode* Parser::orProduction(){
+ASTNode* Parser::orProduction() {
 	ASTNode* _and = andProduction();
 	if (_and == nullptr)return nullptr;
 	OrNode* _or = new OrNode(_and);
 	while (1) {
-		if (cur_t == "||") {
-			_or->childs.push_back(new opNode(cur_t));
+		if (cur_t.second->getInfo() == "||") {
+			_or->childs.push_back(new OpNode(cur_t));
 			next();
 			_and = andProduction();
 			if (_and == nullptr)return nullptr;
@@ -337,13 +341,13 @@ ASTNode* Parser::orProduction(){
 }
 
 // <逻辑与表达式> -> <相等表达式> { "&&" <相等表达式> }
-ASTNode* Parser::andProduction(){
+ASTNode* Parser::andProduction() {
 	ASTNode* equal = equalProduction();
 	if (equal == nullptr)return nullptr;
 	AndNode* And = new AndNode(equal);
 	while (1) {
-		if (cur_t == "&&") {
-			And->childs.push_back(new opNode(cur_t));
+		if (cur_t.second->getInfo() == "&&") {
+			And->childs.push_back(new OpNode(cur_t));
 			next();
 			equal = equalProduction();
 			if (equal == nullptr)return nullptr;
@@ -357,13 +361,13 @@ ASTNode* Parser::andProduction(){
 }
 
 // <相等表达式> -> <关系表达式> { ("==" | "!=") <关系表达式> }
-ASTNode* Parser::equalProduction(){
+ASTNode* Parser::equalProduction() {
 	ASTNode* compare = compareProduction();
 	if (compare == nullptr)return nullptr;
 	EqualNode* equal = new EqualNode(compare);
 	while (1) {
-		if (cur_t == "==" || cur_t == "!=") {
-			equal->childs.push_back(new opNode(cur_t));
+		if (cur_t.second->getInfo() == "==" || cur_t.second->getInfo() == "!=") {
+			equal->childs.push_back(new OpNode(cur_t));
 			next();
 			compare = compareProduction();
 			if (compare == nullptr)return nullptr;
@@ -377,13 +381,14 @@ ASTNode* Parser::equalProduction(){
 }
 
 // <关系表达式> -> <加法表达式> { ('<' | '>' | "<=" | ">=") <加法表达式> }
-ASTNode* Parser::compareProduction(){
+ASTNode* Parser::compareProduction() {
 	ASTNode* add = addProduction();
 	if (add == nullptr)return nullptr;
 	CompareNode* compare = new CompareNode(add);
 	while (1) {
-		if (cur_t == "<"|| cur_t == ">" || cur_t == "<=" || cur_t == ">=") {
-			compare->childs.push_back(new opNode(cur_t));
+		if (cur_t.second->getInfo() == "<" || cur_t.second->getInfo() == ">"
+			|| cur_t.second->getInfo() == "<=" || cur_t.second->getInfo() == ">=") {
+			compare->childs.push_back(new OpNode(cur_t));
 			next();
 			add = addProduction();
 			if (add == nullptr)return nullptr;
@@ -397,13 +402,13 @@ ASTNode* Parser::compareProduction(){
 }
 
 // <加法表达式> -> <乘法表达式> { ('+' | '-') <乘法表达式> }
-ASTNode* Parser::addProduction(){
+ASTNode* Parser::addProduction() {
 	ASTNode* mul = mulProduction();
 	if (mul == nullptr)return nullptr;
 	AddNode* add = new AddNode(mul);
 	while (1) {
-		if (cur_t == "+"|| cur_t == "-" ) {
-			add->childs.push_back(new opNode(cur_t));
+		if (cur_t.second->getInfo() == "+" || cur_t.second->getInfo() == "-") {
+			add->childs.push_back(new OpNode(cur_t));
 			next();
 			mul = mulProduction();
 			if (mul == nullptr)return nullptr;
@@ -417,13 +422,13 @@ ASTNode* Parser::addProduction(){
 }
 
 // <乘法表达式> -> <基本表达式> { ('*' | '/') <基本表达式> }
-ASTNode* Parser::mulProduction(){
+ASTNode* Parser::mulProduction() {
 	ASTNode* basic = basicProdution();
 	if (basic == nullptr)return nullptr;
 	MulNode* mul = new MulNode(basic);
 	while (1) {
-		if (cur_t == "*" || cur_t == "/" ) {
-			mul->childs.push_back(new opNode(cur_t));
+		if (cur_t.second->getInfo() == "*" || cur_t.second->getInfo() == "/") {
+			mul->childs.push_back(new OpNode(cur_t));
 			next();
 			basic = basicProdution();
 			if (basic == nullptr)return nullptr;
@@ -437,28 +442,28 @@ ASTNode* Parser::mulProduction(){
 }
 
 // <基本表达式> -> '标识符' | '整数常量' | '浮点数常量' | '(' < 表达式 > ')' | <函数调用>
-ASTNode* Parser::basicProdution(){
+ASTNode* Parser::basicProdution() {
 	ASTNode* c = nullptr;
-	if (cur_t == "标识符" && cur_t_index + 1 < t.size() && t[cur_t_index + 1] == "(") {
+	if (cur_t.first == "IT" && cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "(") {
 		//判断是  <函数调用>
 		c = useFuncProduction();
 	}
-	else if (cur_t == "标识符") {
+	else if (cur_t.first == "IT") {
 		c = new NameNode(cur_t);
 		next();
 	}
-	else if (cur_t == "整数常量") {
+	else if (cur_t.first == "CT1") {
 		c = new IntNode(cur_t);
 		next();
 	}
-	else if (cur_t == "浮点数常量") {
+	else if (cur_t.first == "CT2") {
 		c = new DoubleNode(cur_t);
 		next();
 	}
-	else if (cur_t == "(") {
+	else if (cur_t.second->getInfo() == "(") {
 		next();
 		c = expressionProduction();
-		if (cur_t == ")") {
+		if (cur_t.second->getInfo() == ")") {
 			next();
 		}
 		else {
@@ -473,22 +478,22 @@ ASTNode* Parser::basicProdution(){
 }
 
 // <函数调用> -> <标识符> '(' [ <实参列表> ] ')'
-ASTNode* Parser::useFuncProduction(){
-	if (cur_t != "标识符") {
+ASTNode* Parser::useFuncProduction() {
+	if (cur_t.first != "IT") {
 		return nullptr; //错误
 	}
 	NameNode* name = new NameNode(cur_t);
 	next();
 
-	if (cur_t != "(") {
+	if (cur_t.second->getInfo() != "(") {
 		return nullptr; //错误
 	}
 	next();
-	
+
 	ASTNode* factPar = nullptr;
-	if (cur_t != ")") {
+	if (cur_t.second->getInfo() != ")") {
 		factPar = factParProduction();
-		if (cur_t != ")" || factPar == nullptr) {
+		if (cur_t.second->getInfo() != ")" || factPar == nullptr) {
 			return nullptr; //错误
 		}
 		next();
@@ -499,13 +504,13 @@ ASTNode* Parser::useFuncProduction(){
 	return new UseFuncNode(name, factPar);
 }
 
-ASTNode* Parser::factParProduction(){
+ASTNode* Parser::factParProduction() {
 	// <实参列表> -> <表达式> { ',' <表达式> }
 	ASTNode* expression = expressionProduction();
 	if (expression == nullptr)return nullptr;
 	FactParNode* factPar = new FactParNode(expression);
 	while (1) {
-		if (cur_t == ",") {
+		if (cur_t.second->getInfo() == ",") {
 			next();
 		}
 		else {

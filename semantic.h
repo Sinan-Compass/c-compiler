@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 #include <set>
-#include "Parser.h"
+#include "Syntactic.h"
 
 using namespace std;
 // quat is short for quadruple, which is a 4-tuple used in intermediate code representation.
@@ -71,7 +71,7 @@ public:
     string analyzeName(NameNode *nameNode);
     string analyzeInt(IntNode *intNode);
     string analyzeDouble(DoubleNode *doubleNode);
-    string analyzeOp(opNode *op);
+    string analyzeOp(OpNode *op);
 
     string getNextTempVar();
 };

@@ -127,15 +127,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Lexical.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Parser.cpp" />
     <ClCompile Include="semantic.cpp" />
+    <ClCompile Include="Syntactic.cpp" />
     <ClCompile Include="tuXIng.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ast.h" />
-    <ClInclude Include="Parser.h" />
+    <ClInclude Include="Lexical.h" />
     <ClInclude Include="semantic.h" />
+    <ClInclude Include="Syntactic.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

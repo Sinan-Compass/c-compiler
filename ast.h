@@ -1,17 +1,13 @@
 #pragma once
-#include <iostream>
-#include <string>
-#include <vector>
+#include "lexical.h"
 using namespace std;
-typedef string token;
-typedef vector<token> tokens;
 
 class ASTNode {
 public:
 	std::vector<ASTNode*> childs;
 	token t;
 public:
-	ASTNode() :childs(0),t("NULL") {}
+	ASTNode() :childs(0), t("NULL", NULL) {}
 	virtual ~ASTNode() {
 		for (ASTNode* child : childs) {
 			delete child;
@@ -22,7 +18,7 @@ public:
 // <程序> -> { <函数定义> }
 class ProgramNode : public ASTNode {
 public:
-	ProgramNode() { t = token("program"); }
+	ProgramNode() { t = token("program", NULL); }
 };
 
 // <函数定义> -> <类型说明符> '标识符' '('[<参数列表>] ')' < 块 >
@@ -30,64 +26,64 @@ class FunctionNode : public ASTNode {
 public:
 	FunctionNode(ASTNode* type, ASTNode* name, ASTNode* list, ASTNode* block) {
 		childs = { type,name,list,block };
-		t = token("functoin");
+		t = token("functoin", NULL);
 	}
 };
 
 // <类型说明符> -> "int" | "float" | "void"
 class TypeNode : public ASTNode {
 public:
-	TypeNode(token& type) {t = type;}
+	TypeNode(token& type) { t = type; }
 };
 
 // "标识符"
 class NameNode : public ASTNode {
 public:
-	NameNode(token& name){t = name;}
+	NameNode(token& name) { t = name; }
 };
 
 // "整数常量"
 class IntNode : public ASTNode {
 public:
-	IntNode(token& num){t = num;}
+	IntNode(token& num) { t = num; }
 };
 
 // "浮点常量"
 class DoubleNode : public ASTNode {
 public:
-	DoubleNode(token& num){	t = num;}
+	DoubleNode(token& num) { t = num; }
 };
 
 // <参数列表> -> <参数> { ',' <参数> }
 class ListNode : public ASTNode {
 public:
-	ListNode(ASTNode* par) { 
-		childs = { par }; 
-		t = token("list");
+	ListNode(ASTNode* par) {
+		childs = { par };
+		t = token("list", NULL);
 	}
 };
 
 // <块> -> '{' { <变量声明> } { <语句> } '}'
 class BlockNode : public ASTNode {
 public:
-	BlockNode() { t = token("block"); }
+	BlockNode() { t = token("block", NULL); }
 };
 
 // <参数> -> <类型说明符> <标识符>
 class PararmeterNode : public ASTNode {
 public:
-	PararmeterNode(ASTNode* type, ASTNode* name){
+	PararmeterNode(ASTNode* type, ASTNode* name) {
 		childs = { type,name };
-		t = token("pararmeter");
+		t = token("pararmeter", NULL);
 	}
 };
 
 // <变量声明> -> <类型说明符> '标识符' ';'
-class DeclareNode : public ASTNode {	
+class DeclareNode : public ASTNode {
 public:
-	DeclareNode(ASTNode* type, ASTNode* name){
+	DeclareNode(ASTNode* type, ASTNode* name) {
 		childs = { type,name };
-		t = token("declare");
+		t = token("declare", NULL);
 	}
 };
 
@@ -96,34 +92,34 @@ class StatementNode : public ASTNode {
 public:
 	StatementNode(ASTNode* child) {
 		childs = { child };
-		t = token("statement");
+		t = token("statement", NULL);
 	}
 };
 
 // <表达式语句> -> <表达式> ';'
 class ExpressNode : public ASTNode {
 public:
-	ExpressNode(ASTNode* expression) { 
+	ExpressNode(ASTNode* expression) {
 		childs = { expression };
-		t = token("express");
+		t = token("express", NULL);
 	}
 };
 
 // <表达式> -> <赋值表达式>
 class ExpressionNode : public ASTNode {
 public:
-	ExpressionNode(ASTNode* assign){
-		childs = { assign }; 
-		t = token("expression");
+	ExpressionNode(ASTNode* assign) {
+		childs = { assign };
+		t = token("expression", NULL);
 	}
 };
 
 // <if语句> -> "if" '(' <表达式> ')' <语句> [ "else"  <语句> ]
 class IfNode : public ASTNode {
 public:
-	IfNode(ASTNode* op1 ,ASTNode* condition, ASTNode* then, ASTNode* op2 ,ASTNode* els){
+	IfNode(ASTNode* op1, ASTNode* condition, ASTNode* then, ASTNode* op2, ASTNode* els) {
 		childs = { op1,condition ,then,op2,els };
-		t = token("if");
+		t = token("if", NULL);
 	}
 };
 
@@ -132,7 +128,7 @@ class WhileNode : public ASTNode {
 public:
 	WhileNode(ASTNode* op, ASTNode* condition, ASTNode* then) {
 		childs = { op,condition ,then };
-		t = token("while");
+		t = token("while", NULL);
 	}
 };
 
@@ -141,7 +137,7 @@ class ReturnNode : public ASTNode {
 public:
 	ReturnNode(ASTNode* op, ASTNode* value) {
 		childs = { op,value };
-		t = token("return");
+		t = token("return", NULL);
 	}
 };
 
@@ -150,64 +146,65 @@ class AssignNode : public ASTNode {
 public:
 	AssignNode(ASTNode* _or) {
 		childs = { _or };
-		t = token("assign");
+		t = token("assign", NULL);
 	}
 	AssignNode(ASTNode* name, ASTNode* assign) {
 		childs = { name,assign };
-		t = token(" = ");
+		t = token("=", NULL);
 	}
 };
 
 // <逻辑或表达式> -> <逻辑与表达式>{ "||" < 逻辑与表达式 > }
 class OrNode : public ASTNode {
 public:
-	OrNode(ASTNode* _and) { 
+	OrNode(ASTNode* _and) {
 		childs = { _and };
-		t = token("or");
+		t = token("or", NULL);
 	}
 };
 
 // <逻辑与表达式> -> <相等表达式> { "&&" <相等表达式> }
 class AndNode : public ASTNode {
 public:
-	AndNode(ASTNode* equal) { 
-		childs = { equal }; 
-		t = token("and");
+	AndNode(ASTNode* equal) {
+		childs = { equal };
+		t = token("and", NULL);
 	}
 };
 
 // <相等表达式> -> <关系表达式> { ("==" | "!=") <关系表达式> }
 class EqualNode : public ASTNode {
 public:
-	EqualNode(ASTNode* compare) { 
+	EqualNode(ASTNode* compare) {
 		childs = { compare };
-		t = token("equal");	}
+		t = token("equal", NULL);
+	}
 };
 
 // <关系表达式> -> <加法表达式> { ('<' | '>' | "<=" | ">=") <加法表达式> }
 class CompareNode : public ASTNode {
 public:
-	CompareNode(ASTNode* add) { 
+	CompareNode(ASTNode* add) {
 		childs = { add };
-		t = token("compare");
+		t = token("compare", NULL);
 	}
 };
 
 // <加法表达式> -> <乘法表达式> { ('+' | '-') <乘法表达式> }
 class AddNode : public ASTNode {
 public:
-	AddNode(ASTNode* mul) { 
-		childs = { mul };  
-		t = token("add");
+	AddNode(ASTNode* mul) {
+		childs = { mul };
+		t = token("add", NULL);
 	}
 };
 
 // <乘法表达式> -> <基本表达式> { ('*' | '/') <基本表达式> }
 class MulNode : public ASTNode {
 public:
-	MulNode(ASTNode* basic) { 
-		childs = { basic }; 
-		t = token("mul");
+	MulNode(ASTNode* basic) {
+		childs = { basic };
+		t = token("mul", NULL);
 	}
 };
 
@@ -215,8 +212,8 @@ public:
 class BasicNode : public ASTNode {
 public:
 	BasicNode(ASTNode* c) {
-		childs = { c }; 
-		t = token("basic");
+		childs = { c };
+		t = token("basic", NULL);
 	}
 };
 
@@ -225,21 +222,21 @@ class UseFuncNode : public ASTNode {
 public:
 	UseFuncNode(ASTNode* name, ASTNode* factPar) {
 		childs = { name,factPar };
-		t = token("useFunc");
+		t = token("useFunc", NULL);
 	}
 };
 
 // <实参列表> -> <表达式> { ',' <表达式> }
 class FactParNode : public ASTNode {
 public:
-	FactParNode(ASTNode* expression) { 
+	FactParNode(ASTNode* expression) {
 		childs = { expression };
-		t = token("factPar");
+		t = token("factPar", NULL);
 	}
 };
 
 //运算符
-class opNode : public ASTNode {
+class OpNode : public ASTNode {
 public:
-	opNode(token& op) { t = op; }
+	OpNode(token& op) { t = op; }
 };
