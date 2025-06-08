@@ -139,6 +139,9 @@
     <ClInclude Include="semantic.h" />
     <ClInclude Include="Syntactic.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="quadruple.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
