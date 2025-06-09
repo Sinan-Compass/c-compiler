@@ -7,6 +7,8 @@ class Parser {
 	token cur_t;
 	int cur_t_index;
 
+	Table& table;
+
 public:
 	void next();
 	ASTNode* programProduction();	// <程序> -> { <函数定义> }
@@ -34,7 +36,7 @@ public:
 	ASTNode* factParProduction();   // <实参列表> -> <表达式> { ',' <表达式> }
 
 public:
-	Parser(tokens& t) :t(t) {
+	Parser(tokens& t, Table& table) :t(t),table(table) {
 		cur_t_index = 0;
 		if (t.size() != 0) {
 			cur_t = t[cur_t_index];

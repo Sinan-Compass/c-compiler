@@ -263,6 +263,11 @@ public:
 
 public:
 	Table() {}
+	bool table_deffunc(token& funName, token& t);
+	bool table_defpara(token& funName, token& paraName, token& t);
+	bool table_defvar(token& funName, token& paraName, token& t);
+	bool table_checkfunc(token& funName);
+	bool table_checkvar(token& varName);
 };
 
 typedef pair<string, Part*> token;  //token½á¹¹
