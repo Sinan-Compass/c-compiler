@@ -14,10 +14,14 @@ public:
 	int cur_ptr;
 	int end;
 	int lable_ptr;
+
+	string cur_func;
+	Table& table;
+
 public:
 	string getNewLable();
 
-	toAssembly(vector<quat>& quats) : quats(quats), cur_ptr(0), end(quats.size() - 1),lable_ptr(0){}
+	toAssembly(vector<quat>& quats,Table& a) : quats(quats), cur_ptr(0), end(quats.size() - 1),lable_ptr(0),table(a){}
 	void generateAssembly();
 	void generateOneBlock();
 	void generateArithmetic();

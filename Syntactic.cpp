@@ -34,6 +34,14 @@ ASTNode* Parser::functionProduction() {
 		return nullptr; //错误
 	}
 	NameNode* name = new NameNode(cur_t);
+	
+	//填表动作->函数名字，函数返回值类型
+	bool ok = table.table_deffunc(name->t, type->t);
+	if (ok == false) {
+		cout << "函数" << name->t.second->getInfo() << "重定义！" << endl;
+		return nullptr;
+	}
+	cur_func = name->t.second->getInfo();
 	next();
 
 	if (cur_t.second->getInfo() != "(") {
@@ -52,8 +60,35 @@ ASTNode* Parser::functionProduction() {
 	else {
 		next();
 	}
+
+	//填表动作->函数名字，函数参数
+	for (int i = 0; i < list->childs.size(); i++) {
+		auto paraName = list->childs[i]->childs[1];
+		auto paraType = list->childs[i]->childs[0];
+		bool ok = table.table_defpara(name->t, paraName->t, paraType->t);
+		if (ok == false) {
+			auto para = list->childs[i];
+			cout << "参数" << paraName->t.second->getInfo() << "重定义！" << endl;
+		}
+	}
+
 	ASTNode* block = blockProduction();
 	if (block == nullptr)return nullptr;
+
+	//填表动作->函数名字，函数局部变量
+	for (int i = 0; i < list->childs.size(); i++) {
+		auto declare = list->childs[i];
+		if (declare->t.second->getInfo() != "declare")
+			break;
+		auto varType = declare->childs[0];
+		auto varName = declare->childs[1];
+		bool ok = table.table_defvar(name->t, varName->t, varName->t);
+		if (ok == false) {
+			cout << "函数"<<name->t.second->getInfo()
+				<<"中的变量"<< varName->t.second->getInfo() <<"重定义" << endl;
+		}
+	}
+
 	return new FunctionNode(type, name, list, block);
 }
 
@@ -92,6 +127,7 @@ ASTNode* Parser::listProduction() {
 ASTNode* Parser::blockProduction() {
 	BlockNode* block = new BlockNode();
 	if (cur_t.second->getInfo() != "{") {
+		cout << "缺少\'{\'" << endl;
 		return nullptr; //错误
 	}
 	next();
@@ -124,6 +160,7 @@ ASTNode* Parser::blockProduction() {
 	}
 
 	if (cur_t.second->getInfo() != "}") {
+		cout << "缺少\'}\'" << endl;
 		return nullptr; //错误
 	}
 	next();
@@ -133,8 +170,12 @@ ASTNode* Parser::blockProduction() {
 // <参数> -> <类型说明符> <标识符>
 ASTNode* Parser::pararmeterProduction() {
 	ASTNode* type = typeProduction();
-	if (type == nullptr)return nullptr;
+	if (type == nullptr) {
+		cout << "函数参数声明缺少类型说明！" << endl;
+		return nullptr;
+	}
 	if (cur_t.first != "IT") {
+		cout << "函数参数声明缺少标识符！" << endl;
 		return nullptr; //错误
 	}
 	NameNode* name = new NameNode(cur_t);
@@ -153,6 +194,7 @@ ASTNode* Parser::declareProduction() {
 	next();
 
 	if (cur_t.second->getInfo() != ";") {
+		cout << "变量声明缺少分号！" << endl;
 		return nullptr; //错误
 	}
 	next();
@@ -192,6 +234,7 @@ ASTNode* Parser::statementProducation() {
 		return new StatementNode(express);
 	}
 	else {
+		cout << "语句错误！" << endl;
 		return nullptr; //错误
 	}
 }
@@ -200,6 +243,7 @@ ASTNode* Parser::statementProducation() {
 ASTNode* Parser::expressProduction() {
 	ASTNode* expression = expressionProduction();
 	if (cur_t.second->getInfo() != ";" || expression == nullptr) {
+		cout << "表达式缺少分号！" << endl;
 		return nullptr; // 错误
 	}
 	next();
@@ -215,6 +259,7 @@ ASTNode* Parser::ifProduction() {
 	next();
 
 	if (cur_t.second->getInfo() != "(") {
+		cout << "if条件缺少括号！" << endl;
 		return nullptr; //错误
 	}
 	next();
@@ -223,12 +268,16 @@ ASTNode* Parser::ifProduction() {
 	if (condition == nullptr)return nullptr;
 
 	if (cur_t.second->getInfo() != ")") {
+		cout << "if条件缺少右括号！" << endl;
 		return nullptr; //错误
 	}
 	next();
 
 	ASTNode* then = statementProducation();
-	if (then == nullptr)return nullptr;
+	if (then == nullptr) {
+		cout << "if的then语块错误！" << endl;
+		return nullptr;
+	}
 
 	ASTNode* els = nullptr;
 	OpNode* op2 = nullptr;
@@ -236,10 +285,12 @@ ASTNode* Parser::ifProduction() {
 		op2 = new OpNode(cur_t);
 		next();
 		els = statementProducation();
-		if (els == nullptr)return nullptr;
+		if (els == nullptr) {
+			cout << "if的then语块错误！" << endl;
+			return nullptr;
+		}
 	}
 	return new IfNode(op1, condition, then, op2, els);
-
 }
 
 // <while语句> -> "while" '(' <表达式> ')'  <语句>
@@ -251,6 +302,7 @@ ASTNode* Parser::whileProduction() {
 	next();
 
 	if (cur_t.second->getInfo() != "(") {
+		cout << "while条件缺少括号！" << endl;
 		return nullptr; //错误
 	}
 	next();
@@ -259,13 +311,16 @@ ASTNode* Parser::whileProduction() {
 	if (condition == nullptr)return nullptr;
 
 	if (cur_t.second->getInfo() != ")") {
+		cout << "while条件缺少右括号！" << endl;
 		return nullptr; //错误
 	}
 	next();
 
 	ASTNode* then = statementProducation();
-	if (then == nullptr)return nullptr;
-
+	if (then == nullptr) {
+		cout << "while的循环执行语块错误！" << endl;
+		return nullptr;
+	}
 	return new WhileNode(op, condition, then);
 }
 
@@ -284,6 +339,7 @@ ASTNode* Parser::returnProduction() {
 		if (value == nullptr)return nullptr;
 	}
 	if (cur_t.second->getInfo() != ";") {
+		cout << "return语句缺少分号！" << endl;
 		return nullptr; //错误
 	}
 	next();
@@ -297,7 +353,7 @@ ASTNode* Parser::expressionProduction() {
 	return new ExpressionNode(assign);
 }
 
-// <赋值表达式> -> <逻辑或表达式> | < 标识符> '=' < 赋值表达式 > (*赋值是右结合*)
+// <赋值表达式> -> <逻辑或表达式> | <标识符> '=' < 赋值表达式 > (*赋值是右结合*)
 ASTNode* Parser::assignProduction() {
 	AssignNode* assign = nullptr;
 	if (cur_t.first == "IT" && cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "=") {
@@ -451,6 +507,11 @@ ASTNode* Parser::basicProdution() {
 	else if (cur_t.first == "IT") {
 		c = new NameNode(cur_t);
 		next();
+		bool ok = table.table_checkvar(cur_func, c->t);
+		if (ok == false) {
+			cout << "变量" << c->t.second->getInfo() << "未定义！" << endl;
+			return nullptr;
+		}
 	}
 	else if (cur_t.first == "CT1") {
 		c = new IntNode(cur_t);
@@ -467,6 +528,7 @@ ASTNode* Parser::basicProdution() {
 			next();
 		}
 		else {
+			cout << "表达式缺少右括号！" << endl;
 			return nullptr; //错误
 		}
 	}
@@ -484,8 +546,14 @@ ASTNode* Parser::useFuncProduction() {
 	}
 	NameNode* name = new NameNode(cur_t);
 	next();
+	bool ok = table.table_checkfunc(name->t);
+	if (ok == false) {
+		cout << "函数"<<name->t.second->getInfo()<<"未定义！"<< endl;
+		return nullptr;
+	}
 
 	if (cur_t.second->getInfo() != "(") {
+		cout<<"函数"<< name->t.second->getInfo()<<"的调用缺少括号！"<<endl;
 		return nullptr; //错误
 	}
 	next();
@@ -494,6 +562,7 @@ ASTNode* Parser::useFuncProduction() {
 	if (cur_t.second->getInfo() != ")") {
 		factPar = factParProduction();
 		if (cur_t.second->getInfo() != ")" || factPar == nullptr) {
+			cout << "函数" << name->t.second->getInfo() << "的调用缺少右括号！" << endl;
 			return nullptr; //错误
 		}
 		next();
@@ -501,6 +570,7 @@ ASTNode* Parser::useFuncProduction() {
 	else {
 		next();
 	}
+
 	return new UseFuncNode(name, factPar);
 }
 

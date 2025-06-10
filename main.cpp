@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "tuXIng.h"
+#pragma
 #include "semantic.h"
+#include "TuXing.h"
 #include "toAssembly.h"
 
 int main() {
@@ -16,30 +17,31 @@ int main() {
 	//	cout << "<" << token.second->getInfo() << ", " << token.first << ">" << endl;
 	//}
 
-	//语法分析
-	Parser parser(lex.tokens);
 	//获取语法树
+	Parser parser(lex.tokens, table);
 	ASTNode* root = parser.Syntax_analyzer();
 	//语法树可视化
 	ASTVisualizer visualizer;
-	visualizer.visualize(root, "ast2.dot");
-
+	visualizer.visualize(root, "ast3.dot");
 
 	//语义分析
 	semantic sem(root);
 	//生成四元式
 	vector<quat> quats = sem.getQuats();
 
-	//四元式输出
-	/*freopen("quadruple.txt", "w", stdout);*/
+	auto& quats = sem.quats;
+
 	//for (int i = 0; i < quats.size(); i++) {
-	//	/*string q = to_string(i) + ":\t" + quats[i][0] + "\t" + quats[i][1] + "\t" + quats[i][2] + "\t" + quats[i][3] + "\n";*/
-	//	cout << i << ":\t" << "(\t" << quats[i][0] << "\t" << quats[i][1] << "\t" << quats[i][2] << "\t" << quats[i][3] << "\t)" << endl;
+	//	cout << i << ":\t" << "(\t" << quats[i][0] 
+	//		<< "\t" << quats[i][1] << "\t" << quats[i][2] 
+	//		<< "\t" << quats[i][3] << "\t)" << endl;
 	//}
 	//cout << "size of quats is : " << quats.size() << endl;
-
-	toAssembly	toasm(quats, table);
-
-
+	freopen("assmbly.asm", "w", stdout);
+	toAssembly to(quats, table);
+	to.generateAssembly();
+	for (auto sentence : to.assembly_code) {
+		cout << sentence << endl;
+	}
 	return 0;
 }
