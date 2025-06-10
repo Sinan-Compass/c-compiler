@@ -364,3 +364,286 @@ bool Lexical_analysis::token_generate(string& character, Table& TABLE) {
 		return true;
 	}
 }
+
+bool Table::table_deffunc(token& funName, token& t) {
+
+	bool find;
+	int num;
+
+	//在主表中定义
+	for (num = 0; num < SYNBL.arr.size(); num++) {
+
+		if (funName.second->getInfo() == SYNBL.arr[num]->name) {
+			break;
+		}
+	}
+
+	if (num == SYNBL.arr.size()) {         //尚未定义
+		//添加新标识符
+		string name = funName.second->getInfo();
+		funName.second = SYNBL.add(name, NULL, null, NULL);
+
+		//定义类型
+		if (t.second->getInfo() == "int") {
+			SYNBL.arr[num]->type = TYPEL.arr[i];
+		}
+		else if (t.second->getInfo() == "float") {
+			SYNBL.arr[num]->type = TYPEL.arr[r];
+		}
+		else if (t.second->getInfo() == "void") {
+			SYNBL.arr[num]->type = TYPEL.arr[vo];
+		}
+
+		//定义种类
+		SYNBL.arr[num]->cat = f;
+
+		//创造活动记录
+		Part* p = VALL.add(name);
+
+		//定义addr指向
+		SYNBL.arr[num]->addr = p;
+
+		find = true;
+	}
+	else {
+		find = false;
+	}
+
+	return find;
+}
+
+bool Table::table_defpara(token& funcName, token& paraName, token& t) {
+
+
+	bool find;
+	int num;
+	int num1;
+	int num2;
+
+	string name = funcName.second->getInfo();
+	name = name + "_" + paraName.second->getInfo();
+
+	//1.先检查funName是否已经被定义过，如果没找到，返回false
+	for (num2 = 0; num2 < VALL.arr.size(); num2++) {
+
+		if (funcName.second->getInfo() == VALL.arr[num2]->FuncName) {
+			break;
+		}
+	}
+
+	if (num2 == VALL.arr.size()) {
+		find = false;
+	}
+	else {
+		//2.检查这个function的vall里面有没有paraName,如果存在，返回false，证明重定义
+
+		for (num1 = 0; num1 < VALL.arr[num2]->num; num1++) {
+
+			if (name == VALL.arr[num2]->name[num1]) {
+				break;
+			}
+		}
+
+		if (num1 != VALL.arr[num2]->num) {
+			find = false;
+		}
+		else {
+			//3.在该函数的vall新加一行变量，名字为funcName_paraName
+
+			if (t.second->getInfo() == "int") {
+				VALL.arr[num2]->add(name, i);
+			}
+			else if (t.second->getInfo() == "float") {
+				VALL.arr[num2]->add(name, r);
+			}
+			else if (t.second->getInfo() == "void") {
+				VALL.arr[num2]->add(name, vo);
+			}
+
+			//4.再在主表里新加该变量，名字为funcName_paraName，指针指向刚刚在vall新加的一行,改token，
+			num = SYNBL.arr.size();
+			paraName.second = SYNBL.add(name, NULL, null, NULL);
+
+			//定义类型
+			if (t.second->getInfo() == "int") {
+				SYNBL.arr[num]->type = TYPEL.arr[i];
+			}
+			else if (t.second->getInfo() == "float") {
+				SYNBL.arr[num]->type = TYPEL.arr[r];
+			}
+			else if (t.second->getInfo() == "void") {
+				SYNBL.arr[num]->type = TYPEL.arr[vo];
+			}
+
+			//定义种类
+			SYNBL.arr[num]->cat = v;
+
+			SYNBL.arr[num]->addr = VALL.arr[num2];
+
+			find = true;
+		}
+	}
+
+	return find;
+}
+
+bool Table::table_defvar(token& funcName, token& paraName, token& t) {
+
+
+	bool find;
+	int num;
+	int num1;
+	int num2;
+
+	string name = funcName.second->getInfo();
+	name = name + "_" + paraName.second->getInfo();
+
+	//1.先检查funName是否已经被定义过，如果没找到，返回false
+	for (num2 = 0; num2 < VALL.arr.size(); num2++) {
+
+		if (funcName.second->getInfo() == VALL.arr[num2]->FuncName) {
+			break;
+		}
+	}
+
+	if (num2 == VALL.arr.size()) {
+		find = false;
+	}
+	else {
+		//2.检查这个function的vall里面有没有paraName,如果存在，返回false，证明重定义
+
+		for (num1 = 0; num1 < VALL.arr[num2]->num; num1++) {
+
+			if (name == VALL.arr[num2]->name[num1]) {
+				break;
+			}
+		}
+
+		if (num1 != VALL.arr[num2]->num) {
+			find = false;
+		}
+		else {
+			//3.在该函数的vall新加一行变量，名字为funcName_paraName
+
+			if (t.second->getInfo() == "int") {
+				VALL.arr[num2]->add(name, i);
+			}
+			else if (t.second->getInfo() == "float") {
+				VALL.arr[num2]->add(name, r);
+			}
+			else if (t.second->getInfo() == "void") {
+				VALL.arr[num2]->add(name, vo);
+			}
+
+			//4.再在主表里新加该变量，名字为funcName_paraName，指针指向刚刚在vall新加的一行,改token，
+			num = SYNBL.arr.size();
+			paraName.second = SYNBL.add(name, NULL, null, NULL);
+
+			//定义类型
+			if (t.second->getInfo() == "int") {
+				SYNBL.arr[num]->type = TYPEL.arr[i];
+			}
+			else if (t.second->getInfo() == "float") {
+				SYNBL.arr[num]->type = TYPEL.arr[r];
+			}
+			else if (t.second->getInfo() == "void") {
+				SYNBL.arr[num]->type = TYPEL.arr[vo];
+			}
+
+			//定义种类
+			SYNBL.arr[num]->cat = v;
+
+			SYNBL.arr[num]->addr = VALL.arr[num2];
+
+			find = true;
+		}
+	}
+
+	return find;
+}
+
+bool Table::table_checkfunc(token& funName) {
+
+	int num;
+	bool find;
+
+	//1.在主表中检查funName在不在，不在返回false
+	for (num = 0; num < SYNBL.arr.size(); num++) {
+
+		if (funName.second->getInfo() == SYNBL.arr[num]->name) {
+			break;
+		}
+	}
+
+	if (num == SYNBL.arr.size()) {         //尚未定义
+		find = false;
+	}
+	else {
+		//2.改指针，使其指向主表
+		funName.second = SYNBL.arr[num];
+
+		find = true;
+	}
+
+	return find;
+}
+
+bool Table::table_checkvar(string& funName, token& varName) {
+
+	int num;
+	bool find;
+
+	string name = funName;
+	name = name + "_" + varName.second->getInfo();
+
+	//1.在主表中检查funName_varName在不在，不在返回false
+	for (num = 0; num < SYNBL.arr.size(); num++) {
+
+		if (name == SYNBL.arr[num]->name) {
+			break;
+		}
+	}
+
+	if (num == SYNBL.arr.size()) {         //尚未定义
+		find = false;
+	}
+	else {
+		//2.改指针，使其指向主表
+		varName.second = SYNBL.arr[num];
+
+		find = true;
+	}
+
+	return find;
+}
+
+int Table::getoff(string& name) {
+	bool find;
+	int num;
+	int num2;
+
+	for (num = 0; num < SYNBL.arr.size(); num++) {
+
+		if (name == SYNBL.arr[num]->name) {
+			break;
+		}
+	}
+
+	string funcname = SYNBL.arr[num]->addr->getInfo();
+
+	for (num = 0; num < VALL.arr.size(); num++) {
+
+		if (funcname == VALL.arr[num]->FuncName) {
+			break;
+		}
+	}
+
+	for (num2 = 0; num2 < VALL.arr[num]->name.size(); num2++) {
+
+		if (name == VALL.arr[num]->name[num2]) {
+			break;
+		}
+	}
+
+	return VALL.arr[num]->off[num2];
+}

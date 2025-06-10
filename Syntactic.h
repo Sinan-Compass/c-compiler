@@ -8,6 +8,7 @@ class Parser {
 	int cur_t_index;
 
 	Table& table;
+	string cur_func;
 
 public:
 	void next();

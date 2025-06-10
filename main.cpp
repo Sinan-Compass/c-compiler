@@ -1,6 +1,8 @@
+#define _CRT_SECURE_NO_WARNINGS
 #pragma
 #include "semantic.h"
 #include "TuXing.h"
+#include "toAssembly.h"
 
 int main() {
 	Table table;
@@ -15,11 +17,17 @@ int main() {
 
 	auto& quats = sem.quats;
 
-	for (int i = 0; i < quats.size(); i++) {
-		cout << i << ":\t" << "(\t" << quats[i][0] 
-			<< "\t" << quats[i][1] << "\t" << quats[i][2] 
-			<< "\t" << quats[i][3] << "\t)" << endl;
+	//for (int i = 0; i < quats.size(); i++) {
+	//	cout << i << ":\t" << "(\t" << quats[i][0] 
+	//		<< "\t" << quats[i][1] << "\t" << quats[i][2] 
+	//		<< "\t" << quats[i][3] << "\t)" << endl;
+	//}
+	//cout << "size of quats is : " << quats.size() << endl;
+	freopen("assmbly.asm", "w", stdout);
+	toAssembly to(quats, table);
+	to.generateAssembly();
+	for (auto sentence : to.assembly_code) {
+		cout << sentence << endl;
 	}
-	cout << "size of quats is : " << quats.size() << endl;
 	return 0;
 }

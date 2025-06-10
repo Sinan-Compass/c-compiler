@@ -41,6 +41,7 @@ ASTNode* Parser::functionProduction() {
 		cout << "函数" << name->t.second->getInfo() << "重定义！" << endl;
 		return nullptr;
 	}
+	cur_func = name->t.second->getInfo();
 	next();
 
 	if (cur_t.second->getInfo() != "(") {
@@ -506,7 +507,7 @@ ASTNode* Parser::basicProdution() {
 	else if (cur_t.first == "IT") {
 		c = new NameNode(cur_t);
 		next();
-		bool ok = table.table_checkvar(c->t);
+		bool ok = table.table_checkvar(cur_func, c->t);
 		if (ok == false) {
 			cout << "变量" << c->t.second->getInfo() << "未定义！" << endl;
 			return nullptr;
