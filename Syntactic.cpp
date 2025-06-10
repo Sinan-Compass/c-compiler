@@ -75,20 +75,6 @@ ASTNode* Parser::functionProduction() {
 	ASTNode* block = blockProduction();
 	if (block == nullptr)return nullptr;
 
-	//填表动作->函数名字，函数局部变量
-	for (int i = 0; i < list->childs.size(); i++) {
-		auto declare = list->childs[i];
-		if (declare->t.second->getInfo() != "declare")
-			break;
-		auto varType = declare->childs[0];
-		auto varName = declare->childs[1];
-		bool ok = table.table_defvar(name->t, varName->t, varName->t);
-		if (ok == false) {
-			cout << "函数"<<name->t.second->getInfo()
-				<<"中的变量"<< varName->t.second->getInfo() <<"重定义" << endl;
-		}
-	}
-
 	return new FunctionNode(type, name, list, block);
 }
 
@@ -192,12 +178,14 @@ ASTNode* Parser::declareProduction() {
 	}
 	NameNode* name = new NameNode(cur_t);
 	next();
+	table.table_defvar(cur_func, name->t, type->t);
 
 	if (cur_t.second->getInfo() != ";") {
 		cout << "变量声明缺少分号！" << endl;
 		return nullptr; //错误
 	}
 	next();
+
 	return new DeclareNode(type, name);
 }
 
@@ -359,6 +347,7 @@ ASTNode* Parser::assignProduction() {
 	if (cur_t.first == "IT" && cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "=") {
 		//判断是  < 标识符> '=' < 赋值表达式 >
 		NameNode* name = new NameNode(cur_t);
+		table.table_checkvar(cur_func, name->t);
 		next();
 		if (cur_t.second->getInfo() != "=") {
 			return nullptr;

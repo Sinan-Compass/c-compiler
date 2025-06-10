@@ -3,8 +3,7 @@
 using namespace std;
 
 string toAssembly::getNewLable() {
-	return "Lable" + to_string(lable_ptr);
-	lable_ptr++;
+	return "Lable" + to_string(lable_ptr++);
 }
 
 /*下面的分函数，约定：
@@ -31,6 +30,7 @@ END MAIN; 程序结束\n\
 ";
 
 void toAssembly::generateAssembly() {
+
 	assembly_code.push_back(assembly_header);
 	while (cur_ptr <= end) {
 		generateOneBlock();
@@ -44,6 +44,7 @@ void toAssembly::generateAssembly() {
 //		generateOneBlock();
 //	}
 //}
+int point = 0;
 
 void toAssembly::generateOneBlock() {
 	quat& q = quats[cur_ptr];
@@ -51,7 +52,7 @@ void toAssembly::generateOneBlock() {
 		generateArithmetic();
 	}
 	else if (q[0] == ">" || q[0] == "<" || q[0] == ">=" || q[0] == "<=" || q[0] == "==" || q[0] == "!=" || q[0] == "&&" || q[0] == "||" || q[0] == "!") {
-		generateTurn();
+		generateLogic();
 	}
 	else if (q[0] == "if") {
 		generateIf();
@@ -70,6 +71,10 @@ void toAssembly::generateOneBlock() {
 	}
 	else if (q[0] == "fun") {
 		generateUseFunction();
+	}
+
+	for (; point < assembly_code.size(); point++) {
+		cout << assembly_code[point] << endl;
 	}
 }
 /*
@@ -116,6 +121,8 @@ void toAssembly::generateArithmetic() {
 		assembly_code.push_back(format("MOV {}, {}", "AX", q[1])); // 假设使用AX寄存器
 		assembly_code.push_back(format("MOV {}, AX", q[3])); // 将结果存储到目标变量
 	}
+
+	cur_ptr++;
 }
 void toAssembly::generateLogic() {
 	quat& q = quats[cur_ptr];
@@ -331,6 +338,7 @@ void toAssembly::generateLogic() {
 		assembly_code.push_back(format("{}:", lable_end));
 		assembly_code.push_back(format("MOV {}, AX", q[3]));
 	}
+	cur_ptr++;
 }
 
 void toAssembly::generateTurn() {
@@ -429,6 +437,8 @@ void toAssembly::generateReturn() {
 
 	name = cur_func + "RETURN";
 	assembly_code.push_back(format("JMP {}", name));
+
+	cur_ptr++;
 }
 void toAssembly::generateDefFunction() {
 	cur_func = quats[cur_ptr][3];
@@ -453,7 +463,7 @@ void toAssembly::generateDefFunction() {
 		generateOneBlock();
 	}
 
-	assembly_code.push_back(cur_func + "RETURN");
+	assembly_code.push_back(cur_func + "RETURN:");
 	assembly_code.push_back("MOV SP,BP");
 	assembly_code.push_back("POP BP");
 	assembly_code.push_back("RET");
@@ -461,10 +471,10 @@ void toAssembly::generateDefFunction() {
 	cur_ptr++;
 }
 void toAssembly::generateDefIdt() {
-	while (quats[cur_ptr][0] == "para" && quats[cur_ptr][1] == "idt") {
+	//while (quats[cur_ptr][0] == "df" && quats[cur_ptr][1] == "idt") {
 		assembly_code.push_back(format("SUB SP {}", 2));
 		cur_ptr++;
-	}
+	//}
 }
 void toAssembly::generateUseFunction() {
 	string name = quats[cur_ptr][1];
@@ -472,11 +482,17 @@ void toAssembly::generateUseFunction() {
 	cur_ptr++;
 
 	int i = 0;
-	while (quats[cur_ptr][0] == "para") {
-		assembly_code.push_back(format("MOV AX,[BP-{}]", 2));
-		assembly_code.push_back(format("MOV [SP-{}], AX", 4 + 2 + i));
-		i += 2;
-		cur_ptr++;
+	while (quats[cur_ptr][0] != "fe") {
+		if (quats[cur_ptr][0] == "para") {
+			assembly_code.push_back(format("MOV AX,[BP-{}]", 2));
+			assembly_code.push_back(format("MOV [SP-{}], AX", 4 + 2 + i));
+			i += 2;
+			cur_ptr++;
+		}
+		else {
+			generateOneBlock();
+		}
+		
 	}
 
 	if (quats[cur_ptr][0] != "fe") {
@@ -484,4 +500,5 @@ void toAssembly::generateUseFunction() {
 		return;
 	}
 	assembly_code.push_back(format("CALL FAR PTR {}", name));
+	cur_ptr++;
 }

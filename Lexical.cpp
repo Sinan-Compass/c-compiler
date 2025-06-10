@@ -1,5 +1,4 @@
 #include "Lexical.h"
-#include "lexical.h"
 
 bool Lexical_analysis::token_generate(string& character, Table& TABLE) {
 	string char_now;
@@ -217,9 +216,9 @@ bool Lexical_analysis::token_generate(string& character, Table& TABLE) {
 				continue;
 			}
 			else {
-				for (int i = 0; i < TABLE.SYNBL.arr.size(); i++) {
-					if (char_now == TABLE.SYNBL.arr[i]->name) {
-						synbl_part* p = TABLE.SYNBL.arr[i];
+				for (int i = 0; i < TABLE.I.arr.size(); i++) {
+					if (char_now == TABLE.I.arr[i]->name) {
+						identif_part* p = TABLE.I.arr[i];
 						token a("IT", p);
 						tokens.push_back(a);
 						find = 1;
@@ -233,9 +232,9 @@ bool Lexical_analysis::token_generate(string& character, Table& TABLE) {
 					continue;
 				}
 				else {
-					TABLE.SYNBL.add(char_now, NULL, null, NULL);
-					int i = TABLE.SYNBL.arr.size();
-					synbl_part* p = TABLE.SYNBL.arr[i - 1];
+					TABLE.I.add(char_now);
+					int i = TABLE.I.arr.size();
+					identif_part* p = TABLE.I.arr[i - 1];
 					token a("IT", p);
 					tokens.push_back(a);
 					state = 1;
@@ -316,7 +315,7 @@ bool Lexical_analysis::token_generate(string& character, Table& TABLE) {
 			else {
 				TABLE.C2.add(char_now);
 				int i = TABLE.C2.arr.size();
-				constant_part* p = TABLE.C2.arr[i-1];
+				constant_part* p = TABLE.C2.arr[i - 1];
 				token a("CT2", p);
 				tokens.push_back(a);
 				state = 1;
@@ -326,43 +325,12 @@ bool Lexical_analysis::token_generate(string& character, Table& TABLE) {
 		}
 	}
 
+
 	if (error == 1) {
-		cout << "ERROR" << endl;
 		return false;
 	}
-	else {
-		cout << "Lexical OK!" << endl;
-		/*cout << "Token :";
-		for (int i = 0; i < tokens.size(); i++) {
-			cout << "(" << tokens[i].first << "," << tokens[i].second->getInfo() << ")";
-		}
-		cout << endl;
-
-		cout << "K :";
-		for (int i = 0; i < TABLE.K.arr.size(); i++) {
-			TABLE.K.arr[i]->print();
-		}
-		cout << endl;
-
-		cout << "I :";
-		for (int i = 0; i < TABLE.SYNBL.arr.size(); i++) {
-			TABLE.SYNBL.arr[i]->print();
-		}
-		cout << endl;
-
-		cout << "C :";
-		for (int i = 0; i < TABLE.C.arr.size(); i++) {
-			TABLE.C.arr[i]->print();
-		}
-		cout << endl;
-
-		cout << "P :";
-		for (int i = 0; i < TABLE.P.arr.size(); i++) {
-			TABLE.P.arr[i]->print();
-		}
-		cout << endl;*/
+	else
 		return true;
-	}
 }
 
 bool Table::table_deffunc(token& funName, token& t) {
@@ -487,7 +455,7 @@ bool Table::table_defpara(token& funcName, token& paraName, token& t) {
 	return find;
 }
 
-bool Table::table_defvar(token& funcName, token& paraName, token& t) {
+bool Table::table_defvar(string& funcName, token& paraName, token& t) {
 
 
 	bool find;
@@ -495,13 +463,12 @@ bool Table::table_defvar(token& funcName, token& paraName, token& t) {
 	int num1;
 	int num2;
 
-	string name = funcName.second->getInfo();
-	name = name + "_" + paraName.second->getInfo();
+	string name = funcName + "_" + paraName.second->getInfo();
 
 	//1.先检查funName是否已经被定义过，如果没找到，返回false
 	for (num2 = 0; num2 < VALL.arr.size(); num2++) {
 
-		if (funcName.second->getInfo() == VALL.arr[num2]->FuncName) {
+		if (funcName == VALL.arr[num2]->FuncName) {
 			break;
 		}
 	}
