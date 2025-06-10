@@ -349,8 +349,6 @@ public:
 		arr.push_back(a);
 		return a;
 	}
-
-
 };
 
 typedef pair<string, Part*> token;  //token½á¹¹
@@ -380,7 +378,7 @@ public:
 
 	bool table_defpara(token& funName, token& paraName, token& t);
 
-	bool table_defvar(token& funName, token& paraName, token& t);
+	bool table_defvar(string& funName, token& paraName, token& t);
 
 	bool table_checkfunc(token& funName);
 

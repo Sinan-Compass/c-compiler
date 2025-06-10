@@ -14,9 +14,9 @@ quat::quat(vector<string> arr) {
 string& quat::operator[](size_t index) {
     return elements[index];
 }
-const string& quat::operator[](size_t index) const {
-    return elements[index];
-}
+//const string& quat::operator[](size_t index) const {
+//    return elements[index];
+//}
 
 vector<quat> semantic::getQuats(){
     return quats;
@@ -46,7 +46,7 @@ void semantic::analyzeFunction(FunctionNode* func) {
     analyzeList(dynamic_cast<ListNode*>(func->childs[2]));
     analyzeBlock(dynamic_cast<BlockNode*>(func->childs[3]));
 
-    quats.push_back({ "fe", "_", "_", "_" }); // Function end
+    quats.push_back({ "de", "_", "_", "_" }); // Function end
 }
 
 void semantic::analyzeBlock(BlockNode* block) {
