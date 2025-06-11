@@ -4,6 +4,9 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <graphics.h>
+#include <conio.h>
+#include <windows.h>
 
 using namespace std;
 
@@ -84,7 +87,7 @@ public:
 	delimeter() {
 		add("-"), add("/"), add("("), add(")"), add("=="), add(">="), add("<"), add("+"), add("*"),
 			add(">"), add("="), add(","), add(";"), add("++"), add("{"), add("}"), add("||"), add("&&"),
-			add("!="), add("<="), add("!"), add("|"), add("&");
+			add("!="), add("<="), add("!"), add("|"), add("&"), add("["), add("]");
 	}
 
 	void add(string name) {
@@ -204,21 +207,37 @@ public:
 		add(i, NULL), add(r, NULL), add(vo, NULL), add(cc, NULL), add(b, NULL);
 	}
 
-	void add(Kind_typel kind, Part* part) {
+	Part* add(Kind_typel kind, Part* part) {
 		typel_part* p = new typel_part(kind, part, n);
 		n++;
 		arr.push_back(p);
+		return p;
 	}
 };
 
 class ainfl_part : public Part {
+public:
 	int length;
 	typel_part* type;
 	int clen;
+	int index;
+
+public:
+	ainfl_part(int& length, typel_part* type, int clen, int index) :length(length), type(type), clen(clen), index(index) {}
 };
 
 class ainfl {                       //数组表
+public:
 	vector<ainfl_part*> arr;
+	int n = 0;
+
+public:
+	Part* add(int& length, typel_part* type, int clen) {
+		ainfl_part* a = new ainfl_part(length, type, clen, n);
+		n++;
+		arr.push_back(a);
+		return a;
+	}
 };
 
 class rinfl_part : public Part {
@@ -247,25 +266,20 @@ public:
 		off.push_back(0);
 	}
 
-	void add(string n, Kind_typel ki) {
+	void add(string n, Kind_typel ki, int number) {
 		num++;
-		if (num == 1) {
-			name.push_back(n);
-			kind.push_back(ki);
-		}
-		else {
-			name.push_back(n);
-			kind.push_back(ki);
 
-			if (ki == i) {
-				off.push_back(off[num - 2] + 2);
-			}
-			else if (ki == r) {
-				off.push_back(off[num - 2] + 4);
-			}
-			else if (ki == vo) {
-				off.push_back(off[num - 2]);
-			}
+		name.push_back(n);
+		kind.push_back(ki);
+
+		if (ki == i) {
+			off.push_back(off[num - 1] + 2 * number);
+		}
+		else if (ki == r) {
+			off.push_back(off[num - 2] + 4 * number);
+		}
+		else if (ki == vo) {
+			off.push_back(off[num - 2]);
 		}
 
 	}
@@ -349,6 +363,8 @@ public:
 		arr.push_back(a);
 		return a;
 	}
+
+
 };
 
 typedef pair<string, Part*> token;  //token结构
@@ -380,9 +396,13 @@ public:
 
 	bool table_defvar(string& funName, token& paraName, token& t);
 
+	bool table_defarr(string& funName, token& arrName, token& t, string& num);
+
 	bool table_checkfunc(token& funName);
 
 	bool table_checkvar(string& funName, token& varName);
+
+	bool table_checkarr(string& funName, token& varName);
 
 	int getoff(string& name);
 };
@@ -396,7 +416,7 @@ public:
 	bool token_generate(string& character, Table& T);   //产生token
 
 	bool input(Table& T) {
-		ifstream file("jc.txt");
+		ifstream file("jcArr.txt");
 		stringstream buffer;
 		buffer << file.rdbuf();
 		file.close();
@@ -405,4 +425,40 @@ public:
 
 		return token_generate(character, T);
 	}
+};
+
+class Interface {
+private:
+	vector<string> userInput;  // 存储多行文字
+	int currentLine = 0;       // 当前行号
+	int scrollOffset = 0;      // 滚动偏移量
+	const int MAX_LINE_LENGTH = 100;  // 每行最大字符数
+	const int VISIBLE_LINES = 15;     // 可见行数
+	string savedContent;       // 存储保存的内容
+
+public:
+
+	// 绘制输入框和已输入的文字
+	void drawInputBox();
+
+	// 处理鼠标点击
+	bool handleMouseClick();
+
+	// 处理键盘输入
+	void handleKeyboardInput();
+
+	// 编译
+	void saveContent();
+
+	// 词法分析函数
+	void lexicalAnalysis();
+
+	// 语法分析函数
+	void syntaxAnalysis();
+
+	// 四元式生成函数
+	void generateQuadruples();
+
+	// 目标代码生成函数
+	void generateTargetCode();
 };

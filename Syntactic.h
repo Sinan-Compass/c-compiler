@@ -19,6 +19,7 @@ public:
 	ASTNode* blockProduction();		// <块> -> '{' { <变量声明> } { <语句> } '}'
 	ASTNode* pararmeterProduction();// <参数> -> <类型说明符> <标识符>
 	ASTNode* declareProduction();	// <变量声明> -> <类型说明符> '标识符' ';'   (*每行声明一个变量*)
+									// <变量声明> -> <类型说明符> '标识符''[' <整数常量> ']' ';'
 	ASTNode* statementProducation();// <语句> -> <表达式语句> | <块> | <if语句> | <while语句> | <return语句>
 	ASTNode* expressProduction();   // <表达式语句> -> <表达式> ';'
 	ASTNode* ifProduction();		// <if语句> -> "if" '(' <表达式> ')' <语句> [ "else" <语句> ]
@@ -33,6 +34,8 @@ public:
 	ASTNode* addProduction();		// <加法表达式> -> <乘法表达式> { ('+' | '-') <乘法表达式> }
 	ASTNode* mulProduction();		// <乘法表达式> -> <基本表达式> { ('*' | '/') <基本表达式> }
 	ASTNode* basicProdution();		// <基本表达式> -> '标识符' | '整数常量' | '浮点数常量' | '(' < 表达式 > ')' | <函数调用>  
+									// <基本表达式> -> arrNode
+	ASTNode* arrProduction();		// arrNode -> <数组名> <表达式>
 	ASTNode* useFuncProduction();   // <函数调用> -> <标识符> '(' [ <实参列表> ] ')'
 	ASTNode* factParProduction();   // <实参列表> -> <表达式> { ',' <表达式> }
 

@@ -7,8 +7,8 @@ quat::quat(const string& op, const string& arg1, const string& arg2, const strin
     elements.push_back(arg2);
     elements.push_back(result);
 }
-quat::quat(vector<string> arr) {
-    elements = vector<string>(arr);
+quat::quat(vector<string> Arr) {
+    elements = vector<string>(Arr);
 }
 
 string& quat::operator[](size_t index) {
@@ -28,6 +28,11 @@ semantic::~semantic() {}
 string semantic::getNextTempVar()
 {
     return "t" + to_string(this->tempVarCount++);
+}
+
+string semantic::getNextPtr()
+{
+    return "p" + to_string(this->ptrCount++);
 }
 
 void semantic::analyzeProgram() {
@@ -132,10 +137,23 @@ string semantic::analyzeParam(PararmeterNode* param) {
 
 
 string semantic::analyzeDeclare(DeclareNode* declare) {
-    string type = analyzeType(dynamic_cast<TypeNode*>(declare->childs[0]));
-    string name = analyzeName(dynamic_cast<NameNode*>(declare->childs[1]));
-    quats.push_back({ "df", "idt", type, name });
-    return name;
+    if (declare->childs.size() == 2) {
+        string type = analyzeType(dynamic_cast<TypeNode*>(declare->childs[0]));
+        string name = analyzeName(dynamic_cast<NameNode*>(declare->childs[1]));
+        quats.push_back({ "df", "idt", type, name });
+        return name;
+    }
+    else if(declare->childs.size() == 3){
+        string type = analyzeType(dynamic_cast<TypeNode*>(declare->childs[1]));
+        string name = analyzeName(dynamic_cast<NameNode*>(declare->childs[2]));
+        string lent = analyzeInt(dynamic_cast<IntNode*>(declare->childs[3]));
+        quats.push_back({ "Arr", type, name, lent });
+        return name;
+    }
+    else {
+        cout << "Error: Invalid declare node. : childs scale wrong" << endl;
+    }
+  
 }
 
 /*
@@ -296,6 +314,7 @@ string semantic::analyzeMul(MulNode* mulNode) {
 // | <浮点数常量>     (* 浮点数 *)
 // | '(' <表达式> ')' (* 括号表达式 *)
 // | <函数调用>       (* 函数调用 *)
+// | <数组声明>
 string semantic::analyzeBasic(BasicNode* basic) {
     string result;
     for (ASTNode* child : basic->childs) {
@@ -316,9 +335,22 @@ string semantic::analyzeBasic(BasicNode* basic) {
         {
             result = analyzeUseFun(funcCall);
         }
+        else if (ArrNode* Arr = dynamic_cast<ArrNode*>(child)) {
+            result = analyzeArr(Arr);
+        }
     }
     return result;
 }
+
+//数组调用 -> <数组名> <表达式>
+string semantic::analyzeArr(ArrNode* Arr){
+    string name = analyzeName(dynamic_cast<NameNode*>(Arr->childs[0]));
+    string ArrPtr = analyzeExpression(dynamic_cast<ExpressionNode*>(Arr->childs[1]));
+    string ptr = getNextPtr();
+    quats.push_back({ "[]", name, ArrPtr, ptr });
+	return ptr; // 返回临时变量，表示数组元素的值
+}
+
 
 string semantic::analyzeUseFun(UseFuncNode* useNode) {
     quat q; //(fun _ _ add)

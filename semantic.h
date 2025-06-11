@@ -18,17 +18,18 @@ public:
     quat(const string& op, const string& arg1, const string& arg2, const string& result);
     quat(vector<string> arr);
     string& operator[](size_t index);
-    const string& operator[](size_t index) const;
+    /*const string& operator[](size_t index) const;*/
 };
 
 class semantic{
 public:
     vector<quat> quats;
     long long tempVarCount = 0;
+    long long ptrCount = 0;
     ASTNode* root;
 public:
     semantic();
-    semantic(ASTNode* root) :root(root), tempVarCount(0) {
+    semantic(ASTNode* root) :root(root), tempVarCount(0), ptrCount(0) {
         analyzeProgram();
     };
     ~semantic();
@@ -61,6 +62,7 @@ public:
     string analyzeBasic(BasicNode* basic);
     string analyzeUseFun(UseFuncNode* useNode);
     void analyzeFactPar(FactParNode* factPar);
+    string analyzeArr(ArrNode* arrNode);
 
     string analyzeType(TypeNode* typeNode);
     string analyzeName(NameNode* nameNode);
@@ -69,4 +71,5 @@ public:
     string analyzeOp(OpNode* op);
 
     string getNextTempVar();
+    string getNextPtr();
 };

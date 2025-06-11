@@ -132,6 +132,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="jc.txt" />
+    <Text Include="jcWhile.txt" />
     <Text Include="quadruple.txt" />
     <Text Include="test.txt" />
   </ItemGroup>

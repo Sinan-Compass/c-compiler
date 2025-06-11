@@ -172,6 +172,7 @@ ASTNode* Parser::pararmeterProduction() {
 }
 
 // <变量声明> -> <类型说明符> '标识符' ';'
+// <变量声明> -> <类型说明符> '标识符''[' <整数常量> ']' ';'
 ASTNode* Parser::declareProduction() {
 	ASTNode* type = typeProduction();
 	if (type == nullptr)return nullptr;
@@ -180,15 +181,53 @@ ASTNode* Parser::declareProduction() {
 	}
 	NameNode* name = new NameNode(cur_t);
 	next();
-	table.table_defvar(cur_func, name->t, type->t);
 
+	IntNode* len = nullptr;
 	if (cur_t.second->getInfo() != ";") {
-		cout << "变量声明缺少分号！" << endl;
-		return nullptr; //错误
-	}
-	next();
+		if (cur_t.second->getInfo() == "[") {
+			next();
+			if (cur_t.first == "CT1") {
+				len = new IntNode(cur_t);
+			}
+			else {
+				cout << "数组声明需要整数长度！" << endl;
+				return nullptr;
+			}
+			next();
 
-	return new DeclareNode(type, name);
+			if (cur_t.second->getInfo() != "]") {
+				cout << "数组声明缺少 \']\' ！" << endl;
+				return nullptr;
+			}
+			next();
+
+			if (cur_t.second->getInfo() != ";") {
+				cout << "缺少分号！" << endl;
+				return nullptr;
+			}
+			next();
+			
+			string length = len->t.second->getInfo();
+			bool ok = table.table_defarr(cur_func, name->t, type->t, length);
+			if (ok == false) {
+				cout << "数组" << name->t.second->getInfo() << "重定义！" << endl;
+			}
+			return new DeclareNode(type, name, len);
+		}
+		else {
+			cout << "没有 \'[\' ！" << endl;
+			return nullptr;
+		}
+	}
+	else {
+		next();
+		bool ok = table.table_defvar(cur_func, name->t, type->t);
+		if (ok == false) {
+			cout << "变量" << name->t.second->getInfo() << "重定义！" << endl;
+		}
+		return new DeclareNode(type, name);
+	}
+	return nullptr;
 }
 
 // <语句> -> <表达式语句> | <块> | <if语句> | <while语句> | <return语句>
@@ -343,13 +382,22 @@ ASTNode* Parser::expressionProduction() {
 	return new ExpressionNode(assign);
 }
 
-// <赋值表达式> -> <逻辑或表达式> | <标识符> '=' < 赋值表达式 > (*赋值是右结合*)
+// <赋值表达式> -> <逻辑或表达式> | <标识符> '=' < 赋值表达式 > | <arrNode>[] '=' <赋值表达式>  (*赋值是右结合*)
 ASTNode* Parser::assignProduction() {
 	AssignNode* assign = nullptr;
+	/*if (cur_t.first == "IT") {
+		int i = 0;
+		while (cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "=");
+	}*/
+
 	if (cur_t.first == "IT" && cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "=") {
 		//判断是  < 标识符> '=' < 赋值表达式 >
 		NameNode* name = new NameNode(cur_t);
-		table.table_checkvar(cur_func, name->t);
+		bool ok = table.table_checkvar(cur_func, name->t);
+		if (ok == false) {
+			cout << "变量" << name->t.second->getInfo() << "未声明！" << endl;
+			return nullptr;
+		}
 		next();
 		if (cur_t.second->getInfo() != "=") {
 			return nullptr;
@@ -489,11 +537,16 @@ ASTNode* Parser::mulProduction() {
 }
 
 // <基本表达式> -> '标识符' | '整数常量' | '浮点数常量' | '(' < 表达式 > ')' | <函数调用>
+// <基本表达式> -> arrNode
 ASTNode* Parser::basicProdution() {
 	ASTNode* c = nullptr;
 	if (cur_t.first == "IT" && cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "(") {
 		//判断是  <函数调用>
 		c = useFuncProduction();
+	}
+	else if (cur_t.first == "IT" && cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "[") {
+		//判断是  arrNode
+		c = arrProduction();
 	}
 	else if (cur_t.first == "IT") {
 		c = new NameNode(cur_t);
@@ -528,6 +581,32 @@ ASTNode* Parser::basicProdution() {
 	}
 	if (c == nullptr)return nullptr;
 	return new BasicNode(c);
+}
+
+// arrNode -> <数组名>'[' <表达式> ']'
+ASTNode* Parser::arrProduction(){
+	if (cur_t.first != "IT") {
+		return nullptr; //错误
+	}
+	NameNode* name = new NameNode(cur_t);
+	next();
+	// 读 '['
+	next();
+
+	ASTNode* expresstion = expressionProduction();
+
+	if (cur_t.second->getInfo() != "]") {
+		cout << "数组调用缺少\']\'" << endl;
+		return nullptr;
+	}
+	next();
+
+	bool ok = table.table_checkarr(cur_func, name->t);
+	if (ok == false) {
+		cout << "数组" << name->t.second->getInfo() << "未定义！" << endl;
+		return nullptr;
+	}
+	return new ArrNode(name, expresstion);
 }
 
 // <函数调用> -> <标识符> '(' [ <实参列表> ] ')'

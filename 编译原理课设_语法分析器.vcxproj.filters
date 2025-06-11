@@ -24,6 +24,7 @@
     <Text Include="jc.txt">
       <Filter>资源文件</Filter>
     </Text>
+    <Text Include="jcWhile.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ast.h">

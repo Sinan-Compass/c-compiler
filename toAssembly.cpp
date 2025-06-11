@@ -6,6 +6,10 @@ string toAssembly::getNewLable() {
 	return "Lable" + to_string(lable_ptr++);
 }
 
+string toAssembly::getNewPtr() {
+	return "Lable" + to_string(ptr_ptr++);
+}
+
 /*下面的分函数，约定：
 * 1.进入函数时，第一句四元式已经读来，即cur_ptr指向要处理的第一句
 * 2.离开函数时，cur_ptr指向下一句四元式，即cur_ptr指向要处理的下一句
@@ -17,6 +21,7 @@ SSEG SEGMENT stack\n\
 SSEG ENDS\n\
 DSEG SEGMENT;\n\
 	T DB 1000 DUP(0)\n\
+	P DB 1000 DUP(0)\n\
 DSEG ENDS;\n\
 CSEG SEGMENT; 定义代码段\n\
 	ASSUME CS : CSEG, DS : DSEG, SS : SSEG\n";
@@ -76,11 +81,9 @@ void toAssembly::generateAssembly() {
 	while (cur_ptr <= end) {
 		generateOneBlock();
 	}
-
 	assembly_code.push_back(printFun);
 	assembly_code.push_back(assembly_tail);
 }
-
 
 //void toAssembly::generateAssembly() {
 //	while (cur_ptr <= end) {
@@ -91,7 +94,7 @@ int point = 0;
 
 void toAssembly::generateOneBlock() {
 	quat& q = quats[cur_ptr];
-	if (q[0] == "+" || q[0] == "-" || q[0] == "*" || q[0] == "/" || q[0] == "=") {
+	if (q[0] == "+" || q[0] == "-" || q[0] == "*" || q[0] == "/" || q[0] == "=" || q[0] == "[]") {
 		generateArithmetic();
 	}
 	else if (q[0] == ">" || q[0] == "<" || q[0] == ">=" || q[0] == "<=" || q[0] == "==" || q[0] == "!=" || q[0] == "&&" || q[0] == "||" || q[0] == "!") {
@@ -115,6 +118,12 @@ void toAssembly::generateOneBlock() {
 	else if (q[0] == "fun") {
 		generateUseFunction();
 	}
+	else if (q[0] == "arr" ) {
+		generateDefArr();
+	}
+	else {
+		cout << "Error: Unrecognized operation: " << q[0] << endl;
+	}
 
 	//for (; point < assembly_code.size(); point++) {
 	//	cout << assembly_code[point] << endl;
@@ -135,7 +144,7 @@ void toAssembly::generateArithmetic() {
 			continue;
 		}
 
-		name = q[i];
+		name = q[i];	//如果是数组的话，应该是（"[]" ，变量， （常量 | 变量 | 常数）， t临时变量 ）
 		if (isdigit(name[0])) {		//如果碰到数字字面量，直接赋值
 			addr_q[i] = q[i];
 		}
@@ -146,13 +155,25 @@ void toAssembly::generateArithmetic() {
 			addr_q[i] = format("WORD PTR [T+{}]", number);
 			/*assembly_code.push_back(format("CMP [T+{}],0", number));*/
 		}
+		else if (name[0] == 'p') {
+			name.erase(name.begin());
+			number = stoi(name);
+			number *= 2;
+
+			if(addr_q[0] == "[]")
+				addr_q[i] = format("P+{}", number);						//声明时使用
+			else {
+				assembly_code.push_back(format("LEA BX, P"));
+				assembly_code.push_back(format("ADD BX, {}", number));	//初始化为0
+				addr_q[i] = format("[BX]");								//使用时使用
+			}
+		}
 		else {
 			number = table.getoff(name);
 			addr_q[i] = format("[BP-{}]", number + 2);
 			/*assembly_code.push_back(format("CMP [BP-{}],0", number + 2));*/
 		}
 	}
-	
 
 	if (addr_q[0] == "+") {
 		// 生成加法指令
@@ -234,7 +255,19 @@ void toAssembly::generateArithmetic() {
 		assembly_code.push_back(format("MOV AX, {}", addr_q[1])); // 假设使用AX寄存器
 		assembly_code.push_back(format("MOV {}, AX", addr_q[3])); // 将结果存储到目标变量
 	}
+	else if (addr_q[0] == "[]") {
+		// 生成数组访问指令
+		// 假设addr_q[1]是数组名，addr_q[2]是索引，addr_q[3]是目标变量
+		assembly_code.push_back(format("MOV AL, {}", addr_q[2]));
+		assembly_code.push_back(format("IMUL 2"));
+		//到此，元素相对于数组起始地址的偏移量已经在AX寄存器中
+		assembly_code.push_back(format("LEA BX, {}", addr_q[1]));
+		assembly_code.push_back(format("ADD AX, BX", addr_q[2]));	//将具体元素的地址放在AX中
 
+		//把元素的地址放到P临时变量中
+		assembly_code.push_back(format("LEA BX, [{}]", addr_q[3]));
+		assembly_code.push_back(format("MOV [BX], AX")); 			//将元素的地址存储到P中
+	}
 	cur_ptr++;
 }
 void toAssembly::generateLogic() {
@@ -259,6 +292,19 @@ void toAssembly::generateLogic() {
 			number *= 2;
 			addr_q[i] = format("WORD PTR [T+{}]", number);
 			/*assembly_code.push_back(format("CMP [T+{}],0", number));*/
+		}
+		else if (name[0] == 'p') {
+			name.erase(name.begin());
+			number = stoi(name);
+			number *= 2;
+
+			if (addr_q[0] == "[]")
+				addr_q[i] = format("P+{}", number);						//声明时使用
+			else {
+				assembly_code.push_back(format("LEA BX, P", addr_q[1]));
+				assembly_code.push_back(format("ADD BX, {}", number));	//初始化为0
+				addr_q[i] = format("[BX]");								//使用时使用
+			}
 		}
 		else {
 			number = table.getoff(name);
@@ -333,7 +379,7 @@ void toAssembly::generateLogic() {
 		assembly_code.push_back(format("{}:", lable_end));
 		assembly_code.push_back(format("MOV {}, AX", addr_q[3]));
 	}
-	else if (addr_q[0] == ">=") {
+	else if (addr_q[0] == "<=") {
 		// 生成大于等于比较指令
 		string lable_right = getNewLable(), lable_end = getNewLable();
 
@@ -491,14 +537,28 @@ void toAssembly::generateIf() {
 	int number = 0;
 
 	if (isdigit(name[0])) {		//如果碰到数字字面量，直接赋值
-		assembly_code.push_back(format("MOV BX, {}", name));
-		assembly_code.push_back(format("CMP BX, 0"));
+		assembly_code.push_back(format("MOV AX, {}", name));
+		assembly_code.push_back(format("CMP AX, 0"));
 	}
 	else if (name[0] == 't') {
 		name.erase(name.begin());
 		number = stoi(name);
 		number *= 2;
 		assembly_code.push_back(format("CMP WORD PTR [T+{}],0", number));
+	}
+	else if (name[0] == 'p') {
+		name.erase(name.begin());
+		number = stoi(name);
+		number *= 2;
+
+		if (q[0] == "[]")
+			q[1] = format("P+{}", number);						//声明时使用
+		else {
+			assembly_code.push_back(format("LEA BX, P"));
+			assembly_code.push_back(format("ADD BX, {}", number));	//初始化为0
+			//q[1] = format("[BX]");								//使用时使用
+			assembly_code.push_back(format("CMP [BX],0", number));
+		}
 	}
 	else {
 		number = table.getoff(name);
@@ -546,7 +606,7 @@ void toAssembly::generateWhile() {
 	int number = 0;
 
 	string lable1 = getNewLable();
-	assembly_code.push_back(format("{}:", lable1));
+	assembly_code.push_back(format("{}:", lable1));		//循环的起点，条件判断
 	cur_ptr++;
 
 	while (quats[cur_ptr][0] != "do") {
@@ -558,8 +618,8 @@ void toAssembly::generateWhile() {
 	name = quats[cur_ptr][1];
 
 	if (isdigit(name[0])) {		//如果碰到数字字面量，直接赋值
-		assembly_code.push_back(format("MOV BX, {}", name));
-		assembly_code.push_back(format("CMP BX, 0"));
+		assembly_code.push_back(format("MOV AX, {}", name));
+		assembly_code.push_back(format("CMP AX, 0"));
 	}
 	else if (name[0] == 't') {
 		name.erase(name.begin());
@@ -567,26 +627,40 @@ void toAssembly::generateWhile() {
 		number *= 2;
 		assembly_code.push_back(format("CMP WORD PTR [T+{}],0", number));
 	}
+	else if (name[0] == 'p') {
+		name.erase(name.begin());
+		number = stoi(name);
+		number *= 2;
+
+		if (q[0] == "[]")
+			q[1] = format("P+{}", number);						//声明时使用
+		else {
+			assembly_code.push_back(format("LEA BX, P"));
+			assembly_code.push_back(format("ADD BX, {}", number));	//初始化为0
+			//q[1] = format("[BX]");								//使用时使用
+			assembly_code.push_back(format("CMP [BX],0", number));
+		}
+	}
 	else {
 		number = table.getoff(name);
 		assembly_code.push_back(format("CMP [BP-{}],0", number + 2));
 	}
 
 	string lable2 = getNewLable();
-	string lable_far = getNewLable();
+	string lable_right = getNewLable();
 
-	assembly_code.push_back(format("JE {}", lable_far));
-	assembly_code.push_back(format("{}:", lable_far));
+	assembly_code.push_back(format("JNE {}", lable_right));
 	assembly_code.push_back(format("JMP NEAR PTR  {}", lable2));
 
-	cur_ptr++;
+	assembly_code.push_back(format("{}:", lable_right));
 
+	cur_ptr++;
 	while (quats[cur_ptr][0] != "we") {
 		generateOneBlock();
 	}
 
-	assembly_code.push_back(format("JMP NEAR PTR  {}", lable1));
-	assembly_code.push_back(format("{}:", lable2));
+	assembly_code.push_back(format("JMP NEAR PTR  {}", lable1));	//回到循环起点
+	assembly_code.push_back(format("{}:", lable2));					//结束标志
 	cur_ptr++;
 }
 void toAssembly::generateReturn() {
@@ -602,6 +676,19 @@ void toAssembly::generateReturn() {
 		number = stoi(name);
 		number *= 2;
 		assembly_code.push_back(format("MOV BX, WORD PTR [T+{}]", number));
+	}
+	else if (name[0] == 'p') {
+		name.erase(name.begin());
+		number = stoi(name);
+		number *= 2;
+
+		if (q[0] == "[]")
+			q[i] = format("P+{}", number);						//声明时使用
+		else {
+			assembly_code.push_back(format("LEA BX, P"));
+			assembly_code.push_back(format("ADD BX, {}", number));	//初始化为0
+			assembly_code.push_back(format("MOV BX, [BX]"));
+		}
 	}
 	else {
 		number = table.getoff(name);
@@ -620,6 +707,7 @@ void toAssembly::generateDefFunction() {
 
 	if (cur_func == "MAIN") {
 		assembly_code.push_back("MOV AX, DSEG\nMOV DS, AX");
+		assembly_code.push_back("MOV AX, SSEG\nMOV SS, AX");
 	}
 
 	assembly_code.push_back("PUSH BP");
@@ -684,6 +772,20 @@ void toAssembly::generateUseFunction() {
 				assembly_code.push_back(format("MOV BX, SP"));
 				assembly_code.push_back(format("MOV SS:WORD PTR [BX-{}], AX", 4 + 4 + i));
 			}
+			else if (quats[cur_ptr][3][0] == 'p') {
+				name.erase(name.begin());
+				int number = stoi(name);
+				number *= 2;
+
+				assembly_code.push_back(format("LEA BX, P"));
+				assembly_code.push_back(format("ADD BX, {}", number));	//初始化为0
+				//addr_q[i] = format("[BX]");								//使用时使用
+
+				assembly_code.push_back(format("MOV AX,[BX]"));
+				assembly_code.push_back(format("MOV BX, SP"));
+				assembly_code.push_back(format("MOV SS:WORD PTR [BX-{}], AX", 4 + 4 + i));
+
+			}
 			else {
 				assembly_code.push_back(format("MOV AX,[BP-{}]", table.getoff(quats[cur_ptr][3]) + 2));
 				assembly_code.push_back(format("MOV BX, SP"));
@@ -709,5 +811,13 @@ void toAssembly::generateUseFunction() {
 	number *= 2;
 	assembly_code.push_back(format("MOV WORD PTR [T+{}], BX", number));
 
+	cur_ptr++;
+}
+
+void toAssembly::generateDefArr() {
+	quat q = quats[cur_ptr];
+	int len = stoi(q[3]);
+
+	assembly_code.push_back(format("SUB SP, {}", 2 * len));
 	cur_ptr++;
 }

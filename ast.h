@@ -85,6 +85,10 @@ public:
 		childs = { type,name };
 		t = token("declare", NULL);
 	}
+	DeclareNode(ASTNode* type, ASTNode* name, ASTNode* len) {
+		childs = { type,name,len };
+		t = token("declareArr", NULL);
+	}
 };
 
 // <Óï¾ä> -> <±í´ïÊ½Óï¾ä> | <¿é> | <ifÓï¾ä> | <whileÓï¾ä> | <returnÓï¾ä>
@@ -239,4 +243,13 @@ public:
 class OpNode : public ASTNode {
 public:
 	OpNode(token& op) { t = op; }
+};
+
+//Êý×é
+class ArrNode :public ASTNode {
+public:
+	ArrNode(ASTNode* Name, ASTNode* expression) {
+		childs = { Name ,expression };
+		t = token("Arr[]", NULL);
+	}
 };
