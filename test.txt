@@ -1,4 +1,4 @@
-int abs(int a){
+int my_abs(int a){
     if(a > 0){
         return a;
     }
@@ -7,15 +7,15 @@ int abs(int a){
     }
 }
 
-int func(int c){
+int MAIN(int c){
     int a;
     int b;
     a = 10;
     b = 10;
     while(a&&b||(b>5)){
-        while(a< abs(c)){
+        while(a< my_abs(c)){
             a = a + b*c;
-            b = a / (abs(b*c) + 1);
+            b = a / (my_abs(b*c) + 1);
             c = c+2;
         }
 
@@ -39,6 +39,6 @@ int func(int c){
             while(b != 3)
                 b = a*b;
         else
-            return abs(a*b - a*c);
+            return my_abs(a*b - a*c);
     }
 }

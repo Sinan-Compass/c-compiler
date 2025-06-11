@@ -131,23 +131,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Lexical.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="semantic.cpp" />
-    <ClCompile Include="Syntactic.cpp" />
-    <ClCompile Include="toAssembly.cpp" />
-    <ClCompile Include="toAssembly.h" />
-    <ClCompile Include="tuXIng.h" />
+    <Text Include="quadruple.txt" />
+    <Text Include="test.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ast.h" />
     <ClInclude Include="Lexical.h" />
     <ClInclude Include="semantic.h" />
     <ClInclude Include="Syntactic.h" />
+    <ClInclude Include="toAssembly.h" />
+    <ClInclude Include="tuXIng.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="quadruple.txt" />
-    <Text Include="test.txt" />
+    <ClCompile Include="Lexical.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="semantic.cpp" />
+    <ClCompile Include="Syntactic.cpp" />
+    <ClCompile Include="toAssembly.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assmbly.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
