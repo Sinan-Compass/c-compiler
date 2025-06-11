@@ -16,14 +16,13 @@ int main() {
 	semantic sem(root);
 	auto& quats = sem.quats;
 
-
-
 	for (int i = 0; i < quats.size(); i++) {
 		cout << i << ":\t" << "(\t" << quats[i][0] 
 			<< "\t" << quats[i][1] << "\t" << quats[i][2] 
 			<< "\t" << quats[i][3] << "\t)" << endl;
 	}
 	cout << "size of quats is : " << quats.size() << endl;
+
 	freopen("assmbly.asm", "w", stdout);
 	toAssembly to(quats, table);
 	to.generateAssembly();

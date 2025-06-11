@@ -112,11 +112,14 @@ string semantic::analyzeAssign(AssignNode* assign) {
 }
 
 void semantic::analyzeList(ListNode* list) {
-    for (ASTNode* child : list->childs) {
-        if (PararmeterNode* param = dynamic_cast<PararmeterNode*>(child)) {
-            analyzeParam(param);
+    if (list != nullptr) {
+        for (ASTNode* child : list->childs) {
+            if (PararmeterNode* param = dynamic_cast<PararmeterNode*>(child)) {
+                analyzeParam(param);
+            }
         }
     }
+
     quats.push_back({ "pe", "_", "_", "_" }); // List end
 }
 

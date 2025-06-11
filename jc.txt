@@ -1,0 +1,11 @@
+int jcw(int num, int suibian){
+	if(num == 1){
+		return 1;
+	}  
+	return num * jcw(num - 1);
+}
+
+int MAIN(){
+	int a;
+	a = jcw(5, 0);
+}

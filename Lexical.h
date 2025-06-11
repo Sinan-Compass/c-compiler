@@ -396,7 +396,7 @@ public:
 	bool token_generate(string& character, Table& T);   //²úÉútoken
 
 	bool input(Table& T) {
-		ifstream file("test.txt");
+		ifstream file("jc.txt");
 		stringstream buffer;
 		buffer << file.rdbuf();
 		file.close();

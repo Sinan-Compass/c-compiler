@@ -22,11 +22,53 @@ CSEG SEGMENT; 定义代码段\n\
 	ASSUME CS : CSEG, DS : DSEG, SS : SSEG\n";
 
 string assembly_tail = "\
-    MOV AX, 4c00h\n\
-INT 21h; 调用 DOS 中断，退出程序\n\
 CSEG ENDS; 代码段结束\n\
 END MAIN; 程序结束\n\
 ";
+
+string printFun = "\
+PrintSignedInt PROC\n\
+PUSH AX\n\
+PUSH BX\n\
+PUSH CX\n\
+PUSH DX\n\
+\n\
+MOV AX, BX\n\
+CMP AX, 0\n\
+JGE POSITIVE\n\
+\n\
+; 输出负号\n\
+MOV DL, '-'\n\
+MOV AH, 02h\n\
+INT 21h\n\
+\n\
+NEG AX; AX = -AX\n\
+\n\
+POSITIVE :\n\
+XOR CX, CX; 计数器清零\n\
+MOV BX, 10; 除数\n\
+\n\
+STORE_DIGITS :\n\
+XOR DX, DX\n\
+DIV BX; AX ÷ 10, 商AX, 余数DX\n\
+PUSH DX; 保存余数\n\
+INC CX\n\
+CMP AX, 0\n\
+JNZ STORE_DIGITS\n\
+\n\
+PRINT_LOOP :\n\
+POP DX\n\
+ADD DL, '0'\n\
+MOV AH, 02h\n\
+INT 21h\n\
+LOOP PRINT_LOOP\n\
+\n\
+POP DX\n\
+POP CX\n\
+POP BX\n\
+POP AX\n\
+RET\n\
+PrintSignedInt ENDP";
 
 void toAssembly::generateAssembly() {
 
@@ -34,6 +76,8 @@ void toAssembly::generateAssembly() {
 	while (cur_ptr <= end) {
 		generateOneBlock();
 	}
+
+	assembly_code.push_back(printFun);
 	assembly_code.push_back(assembly_tail);
 }
 
@@ -137,7 +181,18 @@ void toAssembly::generateArithmetic() {
 
 		//2字节版本
 		assembly_code.push_back(format("MOV AL, {} ", addr_q[1]));	//把第一个操作数加载到AX寄存器
-		assembly_code.push_back(format("IMUL BYTE PTR {} ", addr_q[2]));		// 乘以第二个操作数
+
+		string add;
+		for (int i = 0; i < addr_q[2].size(); i++) {
+			if (addr_q[2][i] == '[') {
+				while (addr_q[2][i] != ']') {
+					add += addr_q[2][i];
+					i++;
+				}
+				add += addr_q[2][i];
+			}
+		}
+		assembly_code.push_back(format("IMUL BYTE PTR {} ", add/*addr_q[2]*/));		// 乘以第二个操作数
 
 		assembly_code.push_back(format("MOV {}, AX ", addr_q[3])); //把AX给低两位
 	}
@@ -157,7 +212,18 @@ void toAssembly::generateArithmetic() {
 		//2字节版本
 		assembly_code.push_back(format("MOV AX, {}", addr_q[1])); //把AX给低两位
 
-		assembly_code.push_back(format("IDIV BYTE PTR {}",   addr_q[2]));	//把第一个操作数加载到AX寄存器
+		string add;
+		for (int i = 0; i < addr_q[2].size(); i++) {
+			if (addr_q[2][i] == '[') {
+				while (addr_q[2][i] != ']') {
+					add += addr_q[2][i];
+					i++;
+				}
+				add += addr_q[2][i];
+			}
+		}
+
+		assembly_code.push_back(format("IDIV BYTE PTR {}",  add /*addr_q[2]*/));	//把第一个操作数加载到AX寄存器
 		assembly_code.push_back(format("XOR AH, 0", addr_q[3]));
 		assembly_code.push_back(format("MOV {}, AX", addr_q[3]));		// 乘以第二个操作数
 
@@ -420,10 +486,15 @@ void toAssembly::generateTurn() {
 
 }
 void toAssembly::generateIf() {
-	int number;
+	quat& q = quats[cur_ptr];
 	string name = quats[cur_ptr][1];
+	int number = 0;
 
-	if (name[0] == 't') {
+	if (isdigit(name[0])) {		//如果碰到数字字面量，直接赋值
+		assembly_code.push_back(format("MOV BX, {}", name));
+		assembly_code.push_back(format("CMP BX, 0"));
+	}
+	else if (name[0] == 't') {
 		name.erase(name.begin());
 		number = stoi(name);
 		number *= 2;
@@ -436,36 +507,43 @@ void toAssembly::generateIf() {
 
 	string lable1 = getNewLable();
 	string lable_far = getNewLable();
+	string lable_ifright = getNewLable();
 
-	assembly_code.push_back(format("JE {}", lable_far));
-	assembly_code.push_back(format("{} :", lable_far));
-	assembly_code.push_back(format("JMP NEAR PTR  {}", lable1));
+	//判断成功的话
+	assembly_code.push_back(format("JNE {}", lable_ifright));	//真值为1
 
+	//判断失败的话
+	/*assembly_code.push_back(format("{} :", lable_far));*/
+	assembly_code.push_back(format("JMP NEAR PTR  {}", lable1));	//else 的入口
+
+
+	assembly_code.push_back(format("{}:", lable_ifright));
 	cur_ptr++;
 	while (quats[cur_ptr][0] != "el" && quats[cur_ptr][0] != "ie") {
 		generateOneBlock();
 	}
 	string lable2 = getNewLable();
 	if (quats[cur_ptr][0] == "el") {
-		assembly_code.push_back(format("JMP NEAR PTR {}", lable2));
-		assembly_code.push_back(format("{}:", lable1));
+		assembly_code.push_back(format("JMP NEAR PTR {}", lable2));	//跳到if结束
+		assembly_code.push_back(format("{}:", lable1));	//进入else
 		cur_ptr++;
 
 		while (quats[cur_ptr][0] != "ie") {
 			generateOneBlock();
 		}
 
+		//结束
 		assembly_code.push_back(format("{}:", lable2));
 		cur_ptr++;
 	}
 	else {
-		assembly_code.push_back(format("{}:", lable1));
+		assembly_code.push_back(format("{}:", lable1));	//进入else， 但是此处else为空
+		assembly_code.push_back(format("{}:", lable2));
 		cur_ptr++;
 	}
 }
 void toAssembly::generateWhile() {
-	int number;
-	string name;
+	int number = 0;
 
 	string lable1 = getNewLable();
 	assembly_code.push_back(format("{}:", lable1));
@@ -475,8 +553,15 @@ void toAssembly::generateWhile() {
 		generateOneBlock();
 	}
 
+	quat& q = quats[cur_ptr];
+	string name = quats[cur_ptr][1];
 	name = quats[cur_ptr][1];
-	if (name[0] == 't') {
+
+	if (isdigit(name[0])) {		//如果碰到数字字面量，直接赋值
+		assembly_code.push_back(format("MOV BX, {}", name));
+		assembly_code.push_back(format("CMP BX, 0"));
+	}
+	else if (name[0] == 't') {
 		name.erase(name.begin());
 		number = stoi(name);
 		number *= 2;
@@ -491,7 +576,7 @@ void toAssembly::generateWhile() {
 	string lable_far = getNewLable();
 
 	assembly_code.push_back(format("JE {}", lable_far));
-	assembly_code.push_back(format("{} :", lable_far));
+	assembly_code.push_back(format("{}:", lable_far));
 	assembly_code.push_back(format("JMP NEAR PTR  {}", lable2));
 
 	cur_ptr++;
@@ -506,11 +591,13 @@ void toAssembly::generateWhile() {
 }
 void toAssembly::generateReturn() {
 	quat& q = quats[cur_ptr];
-
-	int number;
 	string name = q[3];
+	int number = 0;
 
-	if (name[0] == 't') {
+	if (isdigit(name[0])) {		//如果碰到数字字面量，直接赋值
+		assembly_code.push_back(format("MOV BX, {}", name));
+	}
+	else if (name[0] == 't') {
 		name.erase(name.begin());
 		number = stoi(name);
 		number *= 2;
@@ -531,8 +618,9 @@ void toAssembly::generateDefFunction() {
 	string returnType = quats[cur_ptr][2]; // 函数返回类型
 	assembly_code.push_back(format("{} PROC FAR", quats[cur_ptr][3]));
 
-
-	assembly_code.push_back("MOV AX, DSEG\nMOV DS, AX");
+	if (cur_func == "MAIN") {
+		assembly_code.push_back("MOV AX, DSEG\nMOV DS, AX");
+	}
 
 	assembly_code.push_back("PUSH BP");
 	assembly_code.push_back("MOV BP,SP");
@@ -556,7 +644,15 @@ void toAssembly::generateDefFunction() {
 	assembly_code.push_back(cur_func + "RETURN:");
 	assembly_code.push_back("MOV SP, BP");
 	assembly_code.push_back("POP BP");
-	assembly_code.push_back("RET");
+
+	if(cur_func != "MAIN") 
+		assembly_code.push_back("RETF"); // 如果是MAIN函数，使用RETF
+	else
+
+	if (cur_func == "MAIN") {
+		assembly_code.push_back("CALL PrintSignedInt");
+		assembly_code.push_back("MOV AX, 4c00h\nINT 21h; 调用 DOS 中断，退出程序\n");
+	}
 	assembly_code.push_back(format("{} ENDP", cur_func));
 	cur_ptr++;
 }
@@ -573,10 +669,26 @@ void toAssembly::generateUseFunction() {
 
 	int i = 0;
 	while (quats[cur_ptr][0] != "fe") {
+
 		if (quats[cur_ptr][0] == "para") {
-			assembly_code.push_back(format("MOV AX,[BP-{}]", 2));
-			assembly_code.push_back(format("MOV BX, SP"));
-			assembly_code.push_back(format("MOV [BX-{}], AX", 4 + 2 + i));
+
+			if (isdigit(quats[cur_ptr][3][0])) {		//如果碰到数字字面量，直接赋值
+				assembly_code.push_back(format("MOV BX, SP"));
+				assembly_code.push_back(format("MOV SS:WORD PTR [BX-{}], {}", 4 + 4 + i, quats[cur_ptr][3]));
+			}
+			else if (quats[cur_ptr][3][0] == 't') {
+				quats[cur_ptr][3].erase(quats[cur_ptr][3].begin());
+				int number = stoi(quats[cur_ptr][3]);
+				number *= 2;
+				assembly_code.push_back(format("MOV AX,[T+{}]", number));
+				assembly_code.push_back(format("MOV BX, SP"));
+				assembly_code.push_back(format("MOV SS:WORD PTR [BX-{}], AX", 4 + 4 + i));
+			}
+			else {
+				assembly_code.push_back(format("MOV AX,[BP-{}]", table.getoff(quats[cur_ptr][3]) + 2));
+				assembly_code.push_back(format("MOV BX, SP"));
+				assembly_code.push_back(format("MOV SS:WORD PTR [BX-{}], AX", 4 + 4 + i));
+			}
 			i += 2;
 			cur_ptr++;
 		}
@@ -590,5 +702,12 @@ void toAssembly::generateUseFunction() {
 		return;
 	}
 	assembly_code.push_back(format("CALL FAR PTR {}", name));
+
+	int number = 0;
+	value.erase(value.begin());
+	number = stoi(value);
+	number *= 2;
+	assembly_code.push_back(format("MOV WORD PTR [T+{}], BX", number));
+
 	cur_ptr++;
 }

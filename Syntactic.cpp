@@ -62,13 +62,15 @@ ASTNode* Parser::functionProduction() {
 	}
 
 	//填表动作->函数名字，函数参数
-	for (int i = 0; i < list->childs.size(); i++) {
-		auto paraName = list->childs[i]->childs[1];
-		auto paraType = list->childs[i]->childs[0];
-		bool ok = table.table_defpara(name->t, paraName->t, paraType->t);
-		if (ok == false) {
-			auto para = list->childs[i];
-			cout << "参数" << paraName->t.second->getInfo() << "重定义！" << endl;
+	if (list != nullptr) {
+		for (int i = 0; i < list->childs.size(); i++) {
+			auto paraName = list->childs[i]->childs[1];
+			auto paraType = list->childs[i]->childs[0];
+			bool ok = table.table_defpara(name->t, paraName->t, paraType->t);
+			if (ok == false) {
+				auto para = list->childs[i];
+				cout << "参数" << paraName->t.second->getInfo() << "重定义！" << endl;
+			}
 		}
 	}
 
