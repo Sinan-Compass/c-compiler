@@ -1,0 +1,47 @@
+digraph AST {
+  node [shape=box, style="rounded,filled", fontname="Arial"];
+  edge [arrowhead=vee];
+  rankdir=TB; // 从上到下的布局
+
+  node0 [label="program", style=filled, fillcolor="#bbdefb"];
+  node0 -> node1;
+  node1 [label="functoin", style=filled, fillcolor="#c8e6c9"];
+  node1 -> node2;
+  node2 [label="KT: int", style=filled, fillcolor="#ffcc80"];
+  node1 -> node3;
+  node3 [label="IT: fun", style=filled, fillcolor="#ffcc80"];
+  node1 -> node4;
+  node4 [label="block", style=filled, fillcolor="#fff9c4"];
+  node4 -> node5;
+  node5 [label="declare", style=filled, fillcolor="#e0f7fa"];
+  node5 -> node6;
+  node6 [label="KT: int", style=filled, fillcolor="#ffcc80"];
+  node5 -> node7;
+  node7 [label="IT: fun_i", style=filled, fillcolor="#ffcc80"];
+  node4 -> node8;
+  node8 [label="statement", style=filled, fillcolor="#e0f7fa"];
+  node8 -> node9;
+  node9 [label="express", style=filled, fillcolor="#e0f7fa"];
+  node9 -> node10;
+  node10 [label="expression", style=filled, fillcolor="#e0f7fa"];
+  node10 -> node11;
+  node11 [label="=", style=filled, fillcolor="#e0f7fa"];
+  node11 -> node12;
+  node12 [label="IT: fun_i", style=filled, fillcolor="#ffcc80"];
+  node11 -> node13;
+  node13 [label="or", style=filled, fillcolor="#e0f7fa"];
+  node13 -> node14;
+  node14 [label="and", style=filled, fillcolor="#e0f7fa"];
+  node14 -> node15;
+  node15 [label="equal", style=filled, fillcolor="#e0f7fa"];
+  node15 -> node16;
+  node16 [label="compare", style=filled, fillcolor="#e0f7fa"];
+  node16 -> node17;
+  node17 [label="add", style=filled, fillcolor="#e0f7fa"];
+  node17 -> node18;
+  node18 [label="mul", style=filled, fillcolor="#e0f7fa"];
+  node18 -> node19;
+  node19 [label="basic", style=filled, fillcolor="#e0f7fa"];
+  node19 -> node20;
+  node20 [label="CT1: 0", style=filled, fillcolor="#ffcc80"];
+}

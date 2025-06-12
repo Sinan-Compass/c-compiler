@@ -416,7 +416,7 @@ public:
 	bool token_generate(string& character, Table& T);   //²úÉútoken
 
 	bool input(Table& T) {
-		ifstream file("jcArr.txt");
+		ifstream file("fbnq.txt");
 		stringstream buffer;
 		buffer << file.rdbuf();
 		file.close();

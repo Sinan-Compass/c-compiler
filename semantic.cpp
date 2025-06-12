@@ -107,11 +107,21 @@ string semantic::analyzeAssign(AssignNode* assign) {
         return analyzeOr(dynamic_cast<OrNode*>(assign->childs[0]));
     }
     else {
-        string dst = analyzeName(dynamic_cast<NameNode*>(assign->childs[0]));
-        /*string op = analyzeOp(dynamic_cast<OpNode *>(assign->childs[1]));*/
-        string src = analyzeAssign(dynamic_cast<AssignNode*>(assign->childs[1]));
-        quats.push_back({ "=", src, "_", dst });
-        return dst;
+        if (assign->childs[0]->t.first == "IT") {
+            string dst = analyzeName(dynamic_cast<NameNode*>(assign->childs[0]));
+            /*string op = analyzeOp(dynamic_cast<OpNode *>(assign->childs[1]));*/
+            string src = analyzeOr(dynamic_cast<OrNode*>(assign->childs[1]));
+            quats.push_back({ "=", src, "_", dst });
+            return dst;
+        }
+        else {
+            string dst = analyzeArr(dynamic_cast<ArrNode*>(assign->childs[0]));
+            /*string op = analyzeOp(dynamic_cast<OpNode *>(assign->childs[1]));*/
+            string src = analyzeOr(dynamic_cast<OrNode*>(assign->childs[1]));
+            quats.push_back({ "=", src, "_", dst });
+            return dst;
+        }
+        
     }
 
 }
@@ -144,9 +154,9 @@ string semantic::analyzeDeclare(DeclareNode* declare) {
         return name;
     }
     else if(declare->childs.size() == 3){
-        string type = analyzeType(dynamic_cast<TypeNode*>(declare->childs[1]));
-        string name = analyzeName(dynamic_cast<NameNode*>(declare->childs[2]));
-        string lent = analyzeInt(dynamic_cast<IntNode*>(declare->childs[3]));
+        string type = analyzeType(dynamic_cast<TypeNode*>(declare->childs[0]));
+        string name = analyzeName(dynamic_cast<NameNode*>(declare->childs[1]));
+        string lent = analyzeInt(dynamic_cast<IntNode*>(declare->childs[2]));
         quats.push_back({ "Arr", type, name, lent });
         return name;
     }
@@ -166,7 +176,7 @@ string semantic::analyzeDeclare(DeclareNode* declare) {
 */
 void semantic::analyzeIf(IfNode* ifNode) {
     //1.calc condition
-    string condition = analyzeExpression(dynamic_cast<ExpressionNode*>(ifNode->childs[1]));
+    string condition = analyzeOr(dynamic_cast<OrNode*>(ifNode->childs[1]));
 
     //2.add (if _ _ _)
     quats.push_back({ "if", condition, "_", "_" });
@@ -192,7 +202,7 @@ void semantic::analyzeWhile(WhileNode* whileNode) {
     quats.push_back({ "wh", "_", "_", "_" });
 
     //2.calc condition
-    string condition = analyzeExpression(dynamic_cast<ExpressionNode*>(whileNode->childs[1]));
+    string condition = analyzeOr(dynamic_cast<OrNode*>(whileNode->childs[1]));
 
     //3.add (do res(E)_ _ )
     quats.push_back({ "do", condition, "_", "_" });
@@ -205,8 +215,8 @@ void semantic::analyzeWhile(WhileNode* whileNode) {
 }
 
 void semantic::analyzeReturn(ReturnNode* returnNode) {
-    if (ExpressionNode* expr = dynamic_cast<ExpressionNode*>(returnNode->childs[1])) {
-        string rst = analyzeExpression(expr);
+    if (OrNode* expr = dynamic_cast<OrNode*>(returnNode->childs[1])) {
+        string rst = analyzeOr(expr);
         quats.push_back({ "rt", "_", "_", rst });
     }
 }
@@ -327,9 +337,9 @@ string semantic::analyzeBasic(BasicNode* basic) {
         else if (DoubleNode* doubleNode = dynamic_cast<DoubleNode*>(child)) {
             result = analyzeDouble(doubleNode);
         }
-        else if (ExpressionNode* expr = dynamic_cast<ExpressionNode*>(child))
+        else if (OrNode* expr = dynamic_cast<OrNode*>(child))
         {
-            result = analyzeExpression(expr);
+            result = analyzeOr(expr);
         }
         else if (UseFuncNode* funcCall = dynamic_cast<UseFuncNode*>(child))
         {
@@ -345,7 +355,7 @@ string semantic::analyzeBasic(BasicNode* basic) {
 //数组调用 -> <数组名> <表达式>
 string semantic::analyzeArr(ArrNode* Arr){
     string name = analyzeName(dynamic_cast<NameNode*>(Arr->childs[0]));
-    string ArrPtr = analyzeExpression(dynamic_cast<ExpressionNode*>(Arr->childs[1]));
+    string ArrPtr = analyzeOr(dynamic_cast<OrNode*>(Arr->childs[1]));
     string ptr = getNextPtr();
     quats.push_back({ "[]", name, ArrPtr, ptr });
 	return ptr; // 返回临时变量，表示数组元素的值

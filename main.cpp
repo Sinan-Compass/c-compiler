@@ -10,12 +10,13 @@ int main() {
 	lex.input(table);
 	Parser parser(lex.tokens, table);
 	ASTNode* root = parser.Syntax_analyzer();
-	//ASTVisualizer visualizer;
-	//visualizer.visualize(root, "ast4.dot");
+	ASTVisualizer visualizer;
+	visualizer.visualize(root, "ast7.dot");
 
 	semantic sem(root);
 	auto& quats = sem.quats;
 
+	freopen("quadruple.txt", "w", stdout);
 	for (int i = 0; i < quats.size(); i++) {
 		cout << i << ":\t" << "(\t" << quats[i][0] 
 			<< "\t" << quats[i][1] << "\t" << quats[i][2] 
@@ -23,6 +24,7 @@ int main() {
 	}
 	cout << "size of quats is : " << quats.size() << endl;
 
+	
 	freopen("assmbly.asm", "w", stdout);
 	toAssembly to(quats, table);
 	to.generateAssembly();

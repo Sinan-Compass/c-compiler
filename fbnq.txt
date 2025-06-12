@@ -1,0 +1,29 @@
+int fbnq(int n){
+    int arr[10];
+    int i;
+    int linshi;
+
+    linshi = 0;
+    i = 2; 
+
+    arr[0] = 1;
+    arr[1] = 1;
+
+    if(n <= 2){
+        return arr[n - 1];
+    }
+    else{
+        while(i < n){
+            linshi = arr[i - 1];
+            linshi = linshi + arr[i - 2];
+            arr[i] = linshi;
+            i = i + 1;
+        }
+    }
+    
+    return arr[n - 1];
+}
+
+int MAIN(){
+    fbnq(8);
+}

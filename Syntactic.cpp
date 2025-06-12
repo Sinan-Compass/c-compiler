@@ -279,7 +279,7 @@ ASTNode* Parser::expressProduction() {
 	return new ExpressNode(expression);
 }
 
-// <if语句> -> "if" '(' <表达式> ')' <语句> [ "else"  <语句> ]
+// <if语句> -> "if" '(' <逻辑或表达式> ')' <语句> [ "else"  <语句> ]
 ASTNode* Parser::ifProduction() {
 	if (cur_t.second->getInfo() != "if") {
 		return nullptr; //错误
@@ -293,7 +293,7 @@ ASTNode* Parser::ifProduction() {
 	}
 	next();
 
-	ASTNode* condition = expressionProduction();
+	ASTNode* condition = orProduction();
 	if (condition == nullptr)return nullptr;
 
 	if (cur_t.second->getInfo() != ")") {
@@ -322,7 +322,7 @@ ASTNode* Parser::ifProduction() {
 	return new IfNode(op1, condition, then, op2, els);
 }
 
-// <while语句> -> "while" '(' <表达式> ')'  <语句>
+// <while语句> -> "while" '(' <逻辑或表达式> ')'  <语句>
 ASTNode* Parser::whileProduction() {
 	if (cur_t.second->getInfo() != "while") {
 		return nullptr; //错误
@@ -336,7 +336,7 @@ ASTNode* Parser::whileProduction() {
 	}
 	next();
 
-	ASTNode* condition = expressionProduction();
+	ASTNode* condition = orProduction();
 	if (condition == nullptr)return nullptr;
 
 	if (cur_t.second->getInfo() != ")") {
@@ -353,7 +353,7 @@ ASTNode* Parser::whileProduction() {
 	return new WhileNode(op, condition, then);
 }
 
-// <return语句> -> "return" [ <表达式> ] ';'
+// <return语句> -> "return" [ <逻辑或表达式> ] ';'
 ASTNode* Parser::returnProduction() {
 	if (cur_t.second->getInfo() != "return") {
 		return nullptr; //错误
@@ -364,7 +364,7 @@ ASTNode* Parser::returnProduction() {
 	ASTNode* value = nullptr;
 	if (cur_t.second->getInfo() == "(" || cur_t.first == "IT" || cur_t.first == "CT1"|| cur_t.first == "CT2") {
 		//即cur_t为 <表达式> 的first集合的终结符
-		value = expressionProduction();
+		value = orProduction();
 		if (value == nullptr)return nullptr;
 	}
 	if (cur_t.second->getInfo() != ";") {
@@ -382,37 +382,67 @@ ASTNode* Parser::expressionProduction() {
 	return new ExpressionNode(assign);
 }
 
-// <赋值表达式> -> <逻辑或表达式> | <标识符> '=' < 赋值表达式 > | <arrNode>[] '=' <赋值表达式>  (*赋值是右结合*)
+// <赋值表达式> -> <逻辑或表达式> | <标识符> '=' < 逻辑或表达式 > (*赋值是右结合*)
 ASTNode* Parser::assignProduction() {
-	AssignNode* assign = nullptr;
-	/*if (cur_t.first == "IT") {
-		int i = 0;
-		while (cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "=");
-	}*/
 
-	if (cur_t.first == "IT" && cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "=") {
-		//判断是  < 标识符> '=' < 赋值表达式 >
-		NameNode* name = new NameNode(cur_t);
-		bool ok = table.table_checkvar(cur_func, name->t);
-		if (ok == false) {
-			cout << "变量" << name->t.second->getInfo() << "未声明！" << endl;
-			return nullptr;
-		}
-		next();
+	if (cur_t.first == "IT"&&t[cur_t_index+1].second->getInfo()!="(") {
+
+		int i = cur_t_index;
+		ASTNode* arr = arrProduction();
+
 		if (cur_t.second->getInfo() != "=") {
+			cout << "赋值表达式错误！" << endl;
 			return nullptr;
 		}
 		next();
 
-		ASTNode* ass = assignProduction();
-		if (ass == nullptr)return nullptr;
-		return new AssignNode(name, ass);
+		ASTNode* ass = orProduction();
+		if (ass == nullptr) {
+			return nullptr;
+		}
+
+		if (arr == nullptr) {
+			NameNode* name = new NameNode(t[i]);
+			bool ok = table.table_checkvar(cur_func, name->t);
+			if (ok == false) {
+				cout << "标识符未声明！" << endl;
+				return nullptr;
+			}
+			return new AssignNode(name, ass);
+		}
+		return new AssignNode(arr, ass);
 	}
 	else {
 		ASTNode* _or = orProduction();
 		if (_or == nullptr)return nullptr;
 		return new AssignNode(_or);
 	}
+
+
+	//AssignNode* assign = nullptr;
+	//if (cur_t.first == "IT" && cur_t_index + 1 < t.size() && t[cur_t_index + 1].second->getInfo() == "=") {
+	//	//判断是  < 标识符> '=' < 赋值表达式 >
+	//	NameNode* name = new NameNode(cur_t);
+	//	bool ok = table.table_checkvar(cur_func, name->t);
+	//	if (ok == false) {
+	//		cout << "变量" << name->t.second->getInfo() << "未声明！" << endl;
+	//		return nullptr;
+	//	}
+	//	next();
+	//	if (cur_t.second->getInfo() != "=") {
+	//		return nullptr;
+	//	}
+	//	next();
+
+	//	ASTNode* ass = assignProduction();
+	//	if (ass == nullptr)return nullptr;
+	//	return new AssignNode(name, ass);
+	//}
+	//else {
+	//	ASTNode* _or = orProduction();
+	//	if (_or == nullptr)return nullptr;
+	//	return new AssignNode(_or);
+	//}
 }
 
 // <逻辑或表达式> -> <逻辑与表达式>{ "||" < 逻辑与表达式 > }
@@ -536,7 +566,7 @@ ASTNode* Parser::mulProduction() {
 	return mul;
 }
 
-// <基本表达式> -> '标识符' | '整数常量' | '浮点数常量' | '(' < 表达式 > ')' | <函数调用>
+// <基本表达式> -> '标识符' | '整数常量' | '浮点数常量' | '(' < 逻辑或表达式 > ')' | <函数调用>
 // <基本表达式> -> arrNode
 ASTNode* Parser::basicProdution() {
 	ASTNode* c = nullptr;
@@ -567,7 +597,7 @@ ASTNode* Parser::basicProdution() {
 	}
 	else if (cur_t.second->getInfo() == "(") {
 		next();
-		c = expressionProduction();
+		c = orProduction();
 		if (cur_t.second->getInfo() == ")") {
 			next();
 		}
@@ -583,17 +613,19 @@ ASTNode* Parser::basicProdution() {
 	return new BasicNode(c);
 }
 
-// arrNode -> <数组名>'[' <表达式> ']'
+// arrNode -> <数组名>'[' <逻辑或表达式> ']'
 ASTNode* Parser::arrProduction(){
 	if (cur_t.first != "IT") {
 		return nullptr; //错误
 	}
 	NameNode* name = new NameNode(cur_t);
 	next();
-	// 读 '['
+	if (cur_t.second->getInfo() != "[") {
+		return nullptr;
+	}
 	next();
 
-	ASTNode* expresstion = expressionProduction();
+	ASTNode* expresstion = orProduction();
 
 	if (cur_t.second->getInfo() != "]") {
 		cout << "数组调用缺少\']\'" << endl;

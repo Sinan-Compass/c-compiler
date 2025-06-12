@@ -118,16 +118,16 @@ void toAssembly::generateOneBlock() {
 	else if (q[0] == "fun") {
 		generateUseFunction();
 	}
-	else if (q[0] == "arr" ) {
+	else if (q[0] == "Arr" ) {
 		generateDefArr();
 	}
 	else {
 		cout << "Error: Unrecognized operation: " << q[0] << endl;
 	}
 
-	//for (; point < assembly_code.size(); point++) {
-	//	cout << assembly_code[point] << endl;
-	//}
+	/*for (; point < assembly_code.size(); point++) {
+		cout << assembly_code[point] << endl;
+	}*/
 }
 /*
 *遵循无后效性原则，每一句源代码语句之后（最好每个四元式语句都释放），释放所有寄存器
@@ -165,6 +165,8 @@ void toAssembly::generateArithmetic() {
 			else {
 				assembly_code.push_back(format("LEA BX, P"));
 				assembly_code.push_back(format("ADD BX, {}", number));	//初始化为0
+				assembly_code.push_back(format("MOV AX, [BX]"));	//初始化为0
+				assembly_code.push_back(format("MOV BX, AX"));
 				addr_q[i] = format("[BX]");								//使用时使用
 			}
 		}
@@ -259,10 +261,12 @@ void toAssembly::generateArithmetic() {
 		// 生成数组访问指令
 		// 假设addr_q[1]是数组名，addr_q[2]是索引，addr_q[3]是目标变量
 		assembly_code.push_back(format("MOV AL, {}", addr_q[2]));
-		assembly_code.push_back(format("IMUL 2"));
+		assembly_code.push_back(format("MOV AH, {}", 2));
+		assembly_code.push_back(format("IMUL AH"));
 		//到此，元素相对于数组起始地址的偏移量已经在AX寄存器中
 		assembly_code.push_back(format("LEA BX, {}", addr_q[1]));
-		assembly_code.push_back(format("ADD AX, BX", addr_q[2]));	//将具体元素的地址放在AX中
+		assembly_code.push_back(format("SUB BX, AX", addr_q[2]));	//bx: //数组起始地址， AX:偏移量
+		assembly_code.push_back(format("MOV AX, BX"));
 
 		//把元素的地址放到P临时变量中
 		assembly_code.push_back(format("LEA BX, [{}]", addr_q[3]));
