@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <iostream>
 #include <vector>
 #include <string>
@@ -19,14 +19,14 @@ enum Kind_typel {
 };
 //
 //enum Kind_token {
-//	KT,            //¹Ø¼ü×Ö
-//	IT,            //±êÊ¶·û
-//	CT,            //³£Êı
-//	PT,            //½ç·û
+//	KT,            //å…³é”®å­—
+//	IT,            //æ ‡è¯†ç¬¦
+//	CT,            //å¸¸æ•°
+//	PT,            //ç•Œç¬¦
 //	NT
 //};
 
-class Part {		//±íÌå½á¹¹
+class Part {		//è¡¨ä½“ç»“æ„
 public:
 	virtual string getInfo() { return "NULL"; };
 	virtual void print() {};
@@ -45,7 +45,7 @@ public:
 	string getInfo() { return name; }
 };
 
-class keyword {                       //¹Ø¼ü×Ö±í
+class keyword {                       //å…³é”®å­—è¡¨
 public:
 	vector<keyword_part*> arr;
 	int n = 0;
@@ -79,7 +79,7 @@ public:
 	string  getInfo() { return name; }
 };
 
-class delimeter {                     //½ç·û±í
+class delimeter {                     //ç•Œç¬¦è¡¨
 public:
 	vector<delimeter_part*> arr;
 	int n = 0;
@@ -117,7 +117,7 @@ public:
 	string getInfo() { return name; }
 };
 
-class constant1 {                      //³£Êı±í£¨ÕûÊı£©
+class constant1 {                      //å¸¸æ•°è¡¨ï¼ˆæ•´æ•°ï¼‰
 public:
 	vector<constant_part*> arr;
 	int n = 0;
@@ -136,7 +136,7 @@ public:
 	}
 };
 
-class constant2 {                      //³£Êı±í(¸¡µãÊı)
+class constant2 {                      //å¸¸æ•°è¡¨(æµ®ç‚¹æ•°)
 public:
 	vector<constant_part*> arr;
 	int n = 0;
@@ -167,7 +167,7 @@ public:
 	string getInfo() { return name; }
 };
 
-class identif {                      //±êÊ¶·û³õ±í
+class identif {                      //æ ‡è¯†ç¬¦åˆè¡¨
 public:
 	vector<identif_part*> arr;
 	int n = 0;
@@ -197,7 +197,7 @@ public:
 
 };
 
-class typel {                       //ÀàĞÍ±í
+class typel {                       //ç±»å‹è¡¨
 public:
 	vector<typel_part*> arr;
 	int n = 0;
@@ -226,7 +226,7 @@ public:
 	ainfl_part(int& length, typel_part* type, int clen, int index) :length(length), type(type), clen(clen), index(index) {}
 };
 
-class ainfl {                       //Êı×é±í
+class ainfl {                       //æ•°ç»„è¡¨
 public:
 	vector<ainfl_part*> arr;
 	int n = 0;
@@ -246,7 +246,7 @@ class rinfl_part : public Part {
 	typel_part* type;
 };
 
-class rinfl {                       //½á¹¹±í
+class rinfl {                       //ç»“æ„è¡¨
 	vector<rinfl_part*> arr;
 };
 
@@ -292,7 +292,7 @@ public:
 	}
 };
 
-class vall {                        //»î¶¯¼ÇÂ¼  
+class vall {                        //æ´»åŠ¨è®°å½•  
 public:
 	vector<vall_part*> arr;
 
@@ -311,7 +311,7 @@ class parameter_part : public Part {
 	vall* addr;
 };
 
-class parameter {                    //ĞÎ²Î±í
+class parameter {                    //å½¢å‚è¡¨
 	vector<parameter_part*> arr;
 };
 
@@ -323,7 +323,7 @@ class pfinfl_part : public Part {
 	int entry;
 };
 
-class pfinfl {                       //º¯Êı±í
+class pfinfl {                       //å‡½æ•°è¡¨
 	vector<rinfl_part*> arr;
 };
 
@@ -331,7 +331,7 @@ class lenl_part : public Part {
 	double count;
 };
 
-class lenl {                         //³¤¶È±í
+class lenl {                         //é•¿åº¦è¡¨
 	vector<rinfl_part*> arr;
 };
 
@@ -352,7 +352,7 @@ public:
 	string getInfo() { return name; }
 };
 
-class synbl {                           //·ûºÅ±íÖ÷±í
+class synbl {                           //ç¬¦å·è¡¨ä¸»è¡¨
 public:
 	vector<synbl_part*> arr;
 	int n = 0;
@@ -367,7 +367,7 @@ public:
 
 };
 
-typedef pair<string, Part*> token;  //token½á¹¹
+typedef pair<string, Part*> token;  //tokenç»“æ„
 
 typedef vector<token> tokens;
 
@@ -411,12 +411,12 @@ class Lexical_analysis {
 public:
 	vector<token> tokens;
 public:
-	Lexical_analysis() {}                               //³õÊ¼»¯
+	Lexical_analysis() {}                               //åˆå§‹åŒ–
 
-	bool token_generate(string& character, Table& T);   //²úÉútoken
+	bool token_generate(string& character, Table& T);   //äº§ç”Ÿtoken
 
 	bool input(Table& T) {
-		ifstream file("fbnq.txt");
+		ifstream file("samples/fbnq.txt");
 		stringstream buffer;
 		buffer << file.rdbuf();
 		file.close();
@@ -429,36 +429,36 @@ public:
 
 class Interface {
 private:
-	vector<string> userInput;  // ´æ´¢¶àĞĞÎÄ×Ö
-	int currentLine = 0;       // µ±Ç°ĞĞºÅ
-	int scrollOffset = 0;      // ¹ö¶¯Æ«ÒÆÁ¿
-	const int MAX_LINE_LENGTH = 100;  // Ã¿ĞĞ×î´ó×Ö·ûÊı
-	const int VISIBLE_LINES = 15;     // ¿É¼ûĞĞÊı
-	string savedContent;       // ´æ´¢±£´æµÄÄÚÈİ
+	vector<string> userInput;  // å­˜å‚¨å¤šè¡Œæ–‡å­—
+	int currentLine = 0;       // å½“å‰è¡Œå·
+	int scrollOffset = 0;      // æ»šåŠ¨åç§»é‡
+	const int MAX_LINE_LENGTH = 100;  // æ¯è¡Œæœ€å¤§å­—ç¬¦æ•°
+	const int VISIBLE_LINES = 15;     // å¯è§è¡Œæ•°
+	string savedContent;       // å­˜å‚¨ä¿å­˜çš„å†…å®¹
 
 public:
 
-	// »æÖÆÊäÈë¿òºÍÒÑÊäÈëµÄÎÄ×Ö
+	// ç»˜åˆ¶è¾“å…¥æ¡†å’Œå·²è¾“å…¥çš„æ–‡å­—
 	void drawInputBox();
 
-	// ´¦ÀíÊó±êµã»÷
+	// å¤„ç†é¼ æ ‡ç‚¹å‡»
 	bool handleMouseClick();
 
-	// ´¦Àí¼üÅÌÊäÈë
+	// å¤„ç†é”®ç›˜è¾“å…¥
 	void handleKeyboardInput();
 
-	// ±àÒë
+	// ç¼–è¯‘
 	void saveContent();
 
-	// ´Ê·¨·ÖÎöº¯Êı
+	// è¯æ³•åˆ†æå‡½æ•°
 	void lexicalAnalysis();
 
-	// Óï·¨·ÖÎöº¯Êı
+	// è¯­æ³•åˆ†æå‡½æ•°
 	void syntaxAnalysis();
 
-	// ËÄÔªÊ½Éú³Éº¯Êı
+	// å››å…ƒå¼ç”Ÿæˆå‡½æ•°
 	void generateQuadruples();
 
-	// Ä¿±ê´úÂëÉú³Éº¯Êı
+	// ç›®æ ‡ä»£ç ç”Ÿæˆå‡½æ•°
 	void generateTargetCode();
 };

@@ -131,28 +131,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="jc.txt" />
-    <Text Include="jcWhile.txt" />
-    <Text Include="quadruple.txt" />
-    <Text Include="test.txt" />
+    <Text Include="samples\fbnq.txt" />
+    <Text Include="samples\jc.txt" />
+    <Text Include="samples\jcArr.txt" />
+    <Text Include="samples\jcWhile.txt" />
+    <Text Include="samples\test.txt" />
+    <Text Include="outputs\quadruple.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ast.h" />
-    <ClInclude Include="Lexical.h" />
-    <ClInclude Include="semantic.h" />
-    <ClInclude Include="Syntactic.h" />
-    <ClInclude Include="toAssembly.h" />
-    <ClInclude Include="tuXIng.h" />
+    <ClInclude Include="src\ast.h" />
+    <ClInclude Include="src\Lexical.h" />
+    <ClInclude Include="src\semantic.h" />
+    <ClInclude Include="src\Syntactic.h" />
+    <ClInclude Include="src\toAssembly.h" />
+    <ClInclude Include="src\TuXing.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Lexical.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="semantic.cpp" />
-    <ClCompile Include="Syntactic.cpp" />
-    <ClCompile Include="toAssembly.cpp" />
+    <ClCompile Include="src\Lexical.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\semantic.cpp" />
+    <ClCompile Include="src\Syntactic.cpp" />
+    <ClCompile Include="src\toAssembly.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="assmbly.asm" />
+    <None Include="outputs\assmbly.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

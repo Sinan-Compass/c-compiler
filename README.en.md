@@ -1,36 +1,40 @@
-# C_Compiler
+﻿# C Compiler Course Project
 
-#### Description
-This repository is used to store the code for the compiler theory course design, which implements a very basic C language compiler
+A compiler theory course project that implements a small compiler pipeline for a C-like language subset. The project includes lexical analysis, syntax analysis, AST visualization, semantic analysis, quadruple generation, and simple assembly generation.
 
-#### Software Architecture
-Software architecture description
+## Features
 
-#### Installation
+- Lexical analysis from `samples/fbnq.txt`.
+- Recursive-descent parsing and AST construction.
+- AST visualization as Graphviz DOT output in `outputs/ast7.dot`.
+- Semantic analysis and quadruple output in `outputs/quadruple.txt`.
+- Simple assembly output in `outputs/assmbly.asm`.
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## Structure
 
-#### Instructions
+```text
+.
+├── src/                         # Compiler source code
+├── samples/                     # Input sample programs
+├── outputs/                     # Generated/sample outputs
+├── docs/theory/                 # Course notes
+├── SemanticAnalysis/            # Earlier semantic-analysis experiment
+└── 编译原理课设_语法分析器.sln      # Visual Studio solution
+```
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## Environment
 
-#### Contribution
+- Windows
+- Visual Studio 2022 / MSVC v143
+- C++20
+- EasyX/graphics.h if the UI-related code is built
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
+## Build And Run
 
+1. Open `编译原理课设_语法分析器.sln` with Visual Studio.
+2. Select `Debug|x64` or `Release|x64`.
+3. Build and run the project.
+4. The default input is `samples/fbnq.txt`.
+5. Generated files are written to `outputs/`.
 
-#### Gitee Feature
-
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+This repository was migrated from Gitee. Commit history is preserved when the Git repository is pushed to GitHub.

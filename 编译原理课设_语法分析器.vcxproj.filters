@@ -15,56 +15,64 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="quadruple.txt">
+    <Text Include="outputs\quadruple.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="test.txt">
+    <Text Include="samples\test.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="jc.txt">
+    <Text Include="samples\fbnq.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="jcWhile.txt" />
+    <Text Include="samples\jc.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="samples\jcArr.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="samples\jcWhile.txt">
+      <Filter>资源文件</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ast.h">
+    <ClInclude Include="src\ast.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Lexical.h">
+    <ClInclude Include="src\Lexical.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="semantic.h">
+    <ClInclude Include="src\semantic.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Syntactic.h">
+    <ClInclude Include="src\Syntactic.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="toAssembly.h">
+    <ClInclude Include="src\toAssembly.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="tuXIng.h">
+    <ClInclude Include="src\TuXing.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Lexical.cpp">
+    <ClCompile Include="src\Lexical.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="src\main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="semantic.cpp">
+    <ClCompile Include="src\semantic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Syntactic.cpp">
+    <ClCompile Include="src\Syntactic.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="toAssembly.cpp">
+    <ClCompile Include="src\toAssembly.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="assmbly.asm">
+    <None Include="outputs\assmbly.asm">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>
